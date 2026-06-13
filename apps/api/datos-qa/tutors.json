@@ -1,0 +1,18 @@
+[
+  {
+    "firstName": "Maria",
+    "lastName": "Gonzalez",
+    "address": "Av. Providencia 1234, Santiago",
+    "email": "maria@email.com",
+    "phone": "56912345678",
+    "rut": "12345678-9"
+  },
+  {
+    "firstName": "Pedro",
+    "lastName": "Fuentes",
+    "address": "Av. Departamental 5253, Santiago",
+    "email": "p.fuentes@hotmail.com",
+    "phone": "56942252413",
+    "rut": "18356477-3"
+  }
+]

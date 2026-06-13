@@ -1,0 +1,32 @@
+[
+  {
+    "firstName": "Luna",
+    "lastName": "Gonzalez",
+    "sex": "FEMALE",
+    "age": 3,
+    "species": "Canina",
+    "breed": "Mestiza",
+    "reproductiveStatus": "STERILIZED",
+    "tutorId": "cmo6hzk2f0000kgc64seznm2t"
+  },
+  {
+    "firstName": "Muchi",
+    "lastName": "",
+    "sex": "MALE",
+    "age": 1,
+    "species": "FELINA",
+    "breed": "Mestiza",
+    "reproductiveStatus": "NOT_STERILIZED",
+    "tutorId": "cmo6hzk2f0000kgc64seznm2t"
+  },
+  {
+    "firstName": "Lucy",
+    "lastName": "",
+    "sex": "FEMALE",
+    "age": 8,
+    "species": "FELINA",
+    "breed": "Mestiza",
+    "reproductiveStatus": "STERILIZED",
+    "tutorId": "cmo6i3o210002kgc67ykakzbn"
+  }
+]

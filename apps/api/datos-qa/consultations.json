@@ -1,0 +1,64 @@
+[
+  {
+    "patientId": "PEGA_ID_DEL_PATIENT",
+    "remoteAnamnesis": "Tutor refiere decaimiento desde ayer",
+    "consultationReason": "Vomitos y decaimiento",
+    "currentAnamnesis": "Paciente con menor apetito",
+    "clinicalExam": "Mucosas rosadas, temperatura normal",
+    "diagnosis": "Gastroenteritis leve",
+    "inClinicTreatment": "Antiemetico y fluidoterapia",
+    "complementaryTests": "Hemograma sugerido",
+    "testResults": "Pendientes",
+    "homeTreatment": {
+      "instructions": "Dieta blanda por 3 dias y medicamento cada 12 horas"
+    },
+    "followUps": [
+      {
+        "date": "2026-04-20"
+      }
+    ],
+    "consultationDetail": {
+      "cost": 25000,
+      "notes": "Pago contra transferencia"
+    },
+    "vaccineRecords": [
+      {
+        "date": "2026-04-17",
+        "vaccineName": "Octuple"
+      }
+    ],
+    "attachments": [
+      {
+        "fileName": "hemograma.pdf",
+        "fileUrl": "/uploads/hemograma.pdf",
+        "mimeType": "application/pdf",
+        "fileSize": 120340
+      }
+    ]
+  },
+  {
+    "patientId": "cmo6mcxew0000i4c6wkluz1fg",
+    "remoteAnamnesis": "Tutor refiere prurito y lamido excesivo en patas desde hace una semana",
+    "consultationReason": "Picazon y enrojecimiento en piel",
+    "currentAnamnesis": "Paciente mantiene apetito y consumo de agua normal, sin vomitos ni diarrea",
+    "clinicalExam": "Eritema interdigital y lesiones por rascado en extremidades anteriores, resto del examen sin hallazgos relevantes",
+    "diagnosis": "Dermatitis alergica leve",
+    "inClinicTreatment": "Limpieza de zona afectada y aplicacion de tratamiento topico en consulta",
+    "complementaryTests": "Citologia cutanea sugerida",
+    "testResults": "Sin resultados al momento de la consulta",
+    "homeTreatment": {
+      "instructions": "Aplicar medicamento topico cada 12 horas por 7 dias y evitar lamido con collar isabelino"
+    },
+    "followUps": [
+      {
+        "date": "2026-04-24"
+      }
+    ],
+    "consultationDetail": {
+      "cost": 28000,
+      "notes": "Se sugiere control dermatologico en una semana"
+    },
+    "vaccineRecords": [],
+    "attachments": []
+  }
+]

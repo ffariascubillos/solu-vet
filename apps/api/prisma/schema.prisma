@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PatientSex {
+  MALE
+  FEMALE
+}
+
+enum ReproductiveStatus {
+  STERILIZED
+  NOT_STERILIZED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Tutor {
+  id          String     @id @default(cuid())
+  firstName   String
+  lastName    String
+  address     String
+  email       String?    @unique
+  phone       String
+  rut         String     @unique
+  patients    Patient[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Patient {
+  id                  String              @id @default(cuid())
+  firstName           String
+  lastName            String?
+  sex                 PatientSex
+  age                 Int?
+  species             String
+  breed               String?
+  reproductiveStatus  ReproductiveStatus
+  tutorId             String
+  tutor               Tutor               @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  consultations       Consultation[]
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([firstName])
+  @@index([tutorId])
+}
+
+model Consultation {
+  id                      String              @id @default(cuid())
+  patientId               String
+  patient                 Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  remoteAnamnesis         String?
+  consultationReason      String
+  currentAnamnesis        String?
+  clinicalExam            String?
+  diagnosis               String?
+  inClinicTreatment       String?
+  complementaryTests      String?
+  testResults             String?
+
+  homeTreatment           HomeTreatment?
+  followUps               FollowUp[]
+  consultationDetail      ConsultationDetail?
+  vaccineRecords          VaccineRecord[]
+  attachments             Attachment[]
+
+  consultationDate        DateTime            @default(now())
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+
+  @@index([patientId])
+  @@index([consultationDate])
+}
+
+model HomeTreatment {
+  id            String    @id @default(cuid())
+  consultationId String    @unique
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  instructions   String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model FollowUp {
+  id             String    @id @default(cuid())
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  date           DateTime
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([consultationId])
+}
+
+model ConsultationDetail {
+  id             String    @id @default(cuid())
+  consultationId String    @unique
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  cost           Decimal   @db.Decimal(10, 2)
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model VaccineRecord {
+  id             String    @id @default(cuid())
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  date           DateTime
+  vaccineName    String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([consultationId])
+}
+
+model Attachment {
+  id             String    @id @default(cuid())
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  fileName       String
+  fileUrl        String
+  mimeType       String?
+  fileSize       Int?
+  createdAt      DateTime  @default(now())
+
+  @@index([consultationId])
+}
