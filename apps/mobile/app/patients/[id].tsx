@@ -12,6 +12,16 @@ import {
   TouchableOpacity,
 } from "react-native";
 
+const sexLabels: Record<Patient["sex"], string> = {
+  FEMALE: "Hembra",
+  MALE: "Macho",
+};
+
+const reproductiveStatusLabels: Record<Patient["reproductiveStatus"], string> = {
+  NOT_STERILIZED: "No esterilizado",
+  STERILIZED: "Esterilizado",
+};
+
 export default function PatientDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -79,9 +89,10 @@ export default function PatientDetailScreen() {
           Raza: {patient.breed || "No registrada"}
         </Text>
         <Text style={styles.text}>Edad: {patient.age ?? "No registrada"}</Text>
-        <Text style={styles.text}>Sexo: {patient.sex}</Text>
+        <Text style={styles.text}>Sexo: {sexLabels[patient.sex]}</Text>
         <Text style={styles.text}>
-          Estado reproductivo: {patient.reproductiveStatus}
+          Estado reproductivo:{" "}
+          {reproductiveStatusLabels[patient.reproductiveStatus]}
         </Text>
       </View>
 
@@ -98,7 +109,7 @@ export default function PatientDetailScreen() {
         <Text style={styles.text}>RUT: {patient.tutor.rut}</Text>
 
         <TouchableOpacity style={styles.mapButton} onPress={openMaps}>
-          <Text style={styles.mapButtonText}>📍 Ir donde el paciente</Text>
+          <Text style={styles.mapButtonText}>Ver dirección en Maps</Text>
         </TouchableOpacity>
       </View>
 
@@ -122,16 +133,6 @@ export default function PatientDetailScreen() {
             </View>
           ))
         )}
-
-        <Text style={styles.text}>
-          Nombre: {patient.tutor.firstName} {patient.tutor.lastName}
-        </Text>
-        <Text style={styles.text}>Dirección: {patient.tutor.address}</Text>
-        <Text style={styles.text}>Teléfono: {patient.tutor.phone}</Text>
-        <Text style={styles.text}>
-          Correo: {patient.tutor.email || "No registrado"}
-        </Text>
-        <Text style={styles.text}>RUT: {patient.tutor.rut}</Text>
       </View>
     </ScrollView>
   );

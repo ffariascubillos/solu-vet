@@ -1,4 +1,5 @@
 import { api } from "@/src/services/api";
+import { isAxiosError } from "axios";
 import {
   CreatedPatient,
   CreatePatientInput,
@@ -27,6 +28,12 @@ type CreatePatientResponse = {
   data: CreatedPatient;
 };
 
+type ApiErrorResponse = {
+  ok: false;
+  field?: string;
+  message?: string;
+};
+
 export async function searchPatients(query: string) {
   const response = await api.get<SearchPatientsResponse>("/patients/search", {
     params: {
@@ -53,4 +60,34 @@ export async function createPatient(data: CreatePatientInput) {
   const response = await api.post<CreatePatientResponse>("/patients", data);
 
   return response.data.data;
+}
+
+export type TutorRegistrationError = {
+  field?: "rut" | "email";
+  message: string;
+};
+
+export function getTutorRegistrationError(
+  error: unknown,
+): TutorRegistrationError | null {
+  if (!isAxiosError(error)) {
+    return null;
+  }
+
+  const data = error.response?.data as ApiErrorResponse | undefined;
+
+  if (error.response?.status !== 409 || !data?.message) {
+    return null;
+  }
+
+  if (data.field === "rut" || data.field === "email") {
+    return {
+      field: data.field,
+      message: data.message,
+    };
+  }
+
+  return {
+    message: data.message,
+  };
 }

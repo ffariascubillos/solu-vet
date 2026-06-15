@@ -3,20 +3,22 @@
 ## Phase 1 - MVP Registration And Patient Lookup
 
 ### Mobile Registration Flow
-- Build tutor + patient registration screen.
-- Validate required tutor fields.
-- Validate required patient fields.
-- Create tutor through the API.
-- Create patient with returned `tutorId`.
-- Navigate to patient detail after successful creation.
-- Show Spanish loading, success, and error states.
+- Completed: build tutor + patient registration screen.
+- Completed: validate required tutor fields.
+- Completed: validate required patient fields.
+- Completed: create tutor through the API.
+- Completed: create patient with returned `tutorId`.
+- Completed: navigate to patient detail after successful creation.
+- Completed: show Spanish loading and error states.
+- Next: validate the full flow against a live local database.
+- Later: add a dedicated success state if the UX needs one beyond navigation to detail.
 
 ### Patient Lookup
 - Improve patient search empty state.
 - Improve patient search error state.
 - Improve patient detail layout for phones and tablets.
-- Map backend enum values to Spanish UI labels.
-- Keep copy neutral for clinic, hospital, home-visit, and mixed workflows.
+- Completed: map backend enum values to Spanish UI labels in patient detail.
+- Completed: keep MVP registration/detail/home copy neutral for clinic, hospital, home-visit, and mixed workflows.
 
 ### API Completion For Core Records
 - Add tutor detail endpoint if needed by mobile flows.

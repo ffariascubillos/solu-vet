@@ -2,19 +2,14 @@
 
 ## IN PROGRESS
 
-- [ ] Build mobile tutor + patient registration flow in `apps/mobile/app/patients/create.tsx`.
-- [ ] Add mobile service methods for creating tutors and patients.
-- [ ] Navigate to patient detail after patient creation.
-- [ ] Add Spanish validation, loading, and error states to the registration flow.
+- [ ] Validate complete tutor + patient registration end-to-end from the mobile app against a live local database.
 
 ## NEXT
 
 ### Mobile
-- [ ] Replace raw patient enum values with Spanish labels.
-- [ ] Remove or replace Expo starter `Explore` screen content.
-- [ ] Change English tab labels to Spanish.
-- [ ] Make home screen copy clinic-neutral.
-- [ ] Remove duplicated tutor fields from patient detail consultation section.
+- [ ] Improve patient search empty state.
+- [ ] Improve patient search error state and retry behavior.
+- [ ] Improve patient detail layout for phones and tablets.
 - [ ] Move API base URL out of hardcoded LAN IP configuration.
 
 ### Backend
@@ -23,13 +18,15 @@
 - [ ] Add tutor delete endpoint.
 - [ ] Add patient update endpoint.
 - [ ] Add patient delete endpoint.
-- [ ] Normalize unique-constraint and validation error responses.
+- [ ] Decide how to handle orphan tutors if patient creation fails after tutor creation.
+- [ ] Normalize validation error responses.
 
 ### Testing
 - [ ] Add a smoke test or manual checklist for tutor + patient registration.
 - [ ] Add API tests for tutor creation and patient creation.
+- [ ] Add API tests for duplicate tutor RUT and duplicate tutor email responses.
 - [ ] Add API tests for patient search and patient detail.
-- [ ] Validate registration flow against a live local database.
+- [ ] Validate complete registration flow from the mobile app against a live local database.
 
 ## DONE
 
@@ -47,6 +44,18 @@
 - [x] Patient search screen created.
 - [x] Patient detail screen created.
 - [x] Google Maps link from tutor address added.
+- [x] Mobile tutor + patient registration flow created.
+- [x] Mobile service methods for creating tutors and patients added.
+- [x] Registration flow creates Tutor, uses returned `tutor.id`, creates Patient with `tutorId`, and navigates to Patient detail.
+- [x] Spanish validation, loading, and error states added to registration flow.
+- [x] Raw patient enum values replaced with Spanish labels in Patient detail.
+- [x] Expo starter `Explore` screen replaced with Spanish app guide.
+- [x] Tab labels changed to Spanish.
+- [x] Home screen copy made clinic-neutral.
+- [x] Duplicated tutor fields removed from Patient detail consultation section.
+- [x] Predictable unique-constraint error response added for duplicate Tutor RUT/email handling.
+- [x] Duplicate Tutor RUT/email errors are shown near the corresponding mobile form field.
+- [x] Duplicate Tutor RUT/email responses verified against the local API and database.
 - [x] Documentation audit completed.
 
 ## Rules

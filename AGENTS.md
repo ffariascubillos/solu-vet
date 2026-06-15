@@ -63,6 +63,12 @@ Current application boundaries:
 - `apps/mobile`: Expo Router mobile app and mobile API service code.
 - `packages/types`: Reserved workspace package; currently no shared source files.
 
+Current MVP mobile flows:
+- Register Tutor and Patient in one flow.
+- Create Tutor first, use the returned `tutor.id`, then create Patient with `tutorId`.
+- Navigate to Patient detail after successful Patient creation.
+- Search Patients and open Patient detail.
+
 ## Language Rules
 
 Backend and internal contracts:

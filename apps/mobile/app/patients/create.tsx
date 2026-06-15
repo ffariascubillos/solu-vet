@@ -14,6 +14,7 @@ import { useState } from "react";
 import {
   createPatient,
   createTutor,
+  getTutorRegistrationError,
 } from "@/src/features/patients/patients.service";
 import type { CreatePatientInput, CreateTutorInput } from "@/src/types/patient";
 
@@ -28,13 +29,14 @@ type TutorForm = {
 
 type PatientForm = {
   firstName: string;
-  lastName: string;
   sex: CreatePatientInput["sex"];
   age: string;
   species: string;
   breed: string;
   reproductiveStatus: CreatePatientInput["reproductiveStatus"];
 };
+
+type TutorFieldErrors = Partial<Record<"rut" | "email", string>>;
 
 const initialTutorForm: TutorForm = {
   firstName: "",
@@ -47,7 +49,6 @@ const initialTutorForm: TutorForm = {
 
 const initialPatientForm: PatientForm = {
   firstName: "",
-  lastName: "",
   sex: "FEMALE",
   age: "",
   species: "",
@@ -55,18 +56,59 @@ const initialPatientForm: PatientForm = {
   reproductiveStatus: "NOT_STERILIZED",
 };
 
+function normalizeRut(rut: string) {
+  return rut.replace(/\./g, "").replace(/\s/g, "").toUpperCase();
+}
+
+function isValidRut(rut: string) {
+  const match = /^(\d{7,8})-([\dK])$/.exec(rut);
+
+  if (!match) {
+    return false;
+  }
+
+  const [, body, checkDigit] = match;
+  let multiplier = 2;
+  let sum = 0;
+
+  for (let index = body.length - 1; index >= 0; index -= 1) {
+    sum += Number(body[index]) * multiplier;
+    multiplier = multiplier === 7 ? 2 : multiplier + 1;
+  }
+
+  const remainder = 11 - (sum % 11);
+  const expectedDigit =
+    remainder === 11 ? "0" : remainder === 10 ? "K" : String(remainder);
+
+  return checkDigit === expectedDigit;
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 export default function CreatePatientScreen() {
   const [tutorForm, setTutorForm] = useState<TutorForm>(initialTutorForm);
   const [patientForm, setPatientForm] =
     useState<PatientForm>(initialPatientForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [tutorFieldErrors, setTutorFieldErrors] = useState<TutorFieldErrors>(
+    {},
+  );
 
   function updateTutorField(field: keyof TutorForm, value: string) {
     setTutorForm((current) => ({
       ...current,
       [field]: value,
     }));
+
+    if (field === "rut" || field === "email") {
+      setTutorFieldErrors((current) => ({
+        ...current,
+        [field]: undefined,
+      }));
+    }
   }
 
   function updatePatientField<K extends keyof PatientForm>(
@@ -80,22 +122,50 @@ export default function CreatePatientScreen() {
   }
 
   function validateForm() {
+    const normalizedRut = normalizeRut(tutorForm.rut);
+    const tutorFirstName = tutorForm.firstName.trim();
+    const tutorLastName = tutorForm.lastName.trim();
+    const tutorAddress = tutorForm.address.trim();
+    const tutorPhone = tutorForm.phone.trim();
+    const patientFirstName = patientForm.firstName.trim();
+    const patientSpecies = patientForm.species.trim();
+
     if (
-      !tutorForm.firstName.trim() ||
-      !tutorForm.lastName.trim() ||
-      !tutorForm.address.trim() ||
-      !tutorForm.phone.trim() ||
+      !tutorFirstName ||
+      !tutorLastName ||
+      !tutorAddress ||
+      !tutorPhone ||
       !tutorForm.rut.trim()
     ) {
       return "Completa los datos obligatorios del tutor.";
     }
 
-    if (tutorForm.email.trim() && !tutorForm.email.includes("@")) {
+    if (tutorFirstName.length < 2 || tutorLastName.length < 2) {
+      return "El nombre y apellido del tutor deben tener al menos 2 caracteres.";
+    }
+
+    if (tutorAddress.length < 5) {
+      return "La dirección del tutor debe tener al menos 5 caracteres.";
+    }
+
+    if (tutorPhone.length < 8) {
+      return "El teléfono del tutor debe tener al menos 8 caracteres.";
+    }
+
+    if (!isValidRut(normalizedRut)) {
+      return "Ingresa un RUT válido.";
+    }
+
+    if (tutorForm.email.trim() && !isValidEmail(tutorForm.email.trim())) {
       return "Ingresa un correo electrónico válido.";
     }
 
-    if (!patientForm.firstName.trim() || !patientForm.species.trim()) {
+    if (!patientFirstName || !patientSpecies) {
       return "Completa los datos obligatorios del paciente.";
+    }
+
+    if (patientSpecies.length < 2) {
+      return "La especie del paciente debe tener al menos 2 caracteres.";
     }
 
     if (patientForm.age.trim()) {
@@ -116,7 +186,7 @@ export default function CreatePatientScreen() {
       address: tutorForm.address.trim(),
       email: tutorForm.email.trim() || undefined,
       phone: tutorForm.phone.trim(),
-      rut: tutorForm.rut.trim(),
+      rut: normalizeRut(tutorForm.rut),
     };
   }
 
@@ -127,7 +197,7 @@ export default function CreatePatientScreen() {
 
     return {
       firstName: patientForm.firstName.trim(),
-      lastName: patientForm.lastName.trim() || undefined,
+      lastName: tutorForm.lastName.trim(),
       sex: patientForm.sex,
       age,
       species: patientForm.species.trim(),
@@ -142,12 +212,14 @@ export default function CreatePatientScreen() {
 
     if (validationError) {
       setError(validationError);
+      setTutorFieldErrors({});
       return;
     }
 
     try {
       setSaving(true);
       setError("");
+      setTutorFieldErrors({});
 
       const tutor = await createTutor(buildTutorInput());
       const patient = await createPatient(buildPatientInput(tutor.id));
@@ -156,10 +228,21 @@ export default function CreatePatientScreen() {
         pathname: "/patients/[id]",
         params: { id: patient.id },
       });
-    } catch {
-      setError(
-        "No se pudo registrar el tutor o el paciente. Revisa los datos e intenta nuevamente.",
-      );
+    } catch (submitError) {
+      const tutorRegistrationError = getTutorRegistrationError(submitError);
+
+      if (tutorRegistrationError?.field) {
+        setTutorFieldErrors({
+          [tutorRegistrationError.field]: tutorRegistrationError.message,
+        });
+        setError("");
+      } else if (tutorRegistrationError) {
+        setError(tutorRegistrationError.message);
+      } else {
+        setError(
+          "No se pudo registrar el tutor o el paciente. Revisa los datos e intenta nuevamente.",
+        );
+      }
     } finally {
       setSaving(false);
     }
@@ -201,6 +284,7 @@ export default function CreatePatientScreen() {
             onChangeText={(value) => updateTutorField("email", value)}
             keyboardType="email-address"
             autoCapitalize="none"
+            error={tutorFieldErrors.email}
           />
           <FormInput
             label="Teléfono"
@@ -213,6 +297,7 @@ export default function CreatePatientScreen() {
             value={tutorForm.rut}
             onChangeText={(value) => updateTutorField("rut", value)}
             autoCapitalize="characters"
+            error={tutorFieldErrors.rut}
           />
         </View>
 
@@ -223,11 +308,6 @@ export default function CreatePatientScreen() {
             label="Nombre"
             value={patientForm.firstName}
             onChangeText={(value) => updatePatientField("firstName", value)}
-          />
-          <FormInput
-            label="Apellido"
-            value={patientForm.lastName}
-            onChangeText={(value) => updatePatientField("lastName", value)}
           />
 
           <Text style={styles.label}>Sexo</Text>
@@ -288,7 +368,10 @@ export default function CreatePatientScreen() {
           disabled={saving}
         >
           {saving ? (
-            <ActivityIndicator color="#ffffff" />
+            <View style={styles.submitButtonContent}>
+              <ActivityIndicator color="#ffffff" />
+              <Text style={styles.savingText}>Registrando...</Text>
+            </View>
           ) : (
             <Text style={styles.submitButtonText}>Registrar paciente</Text>
           )}
@@ -304,6 +387,7 @@ type FormInputProps = {
   onChangeText: (value: string) => void;
   keyboardType?: "default" | "email-address" | "phone-pad" | "number-pad";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  error?: string;
 };
 
 function FormInput({
@@ -312,17 +396,19 @@ function FormInput({
   onChangeText,
   keyboardType = "default",
   autoCapitalize = "words",
+  error,
 }: FormInputProps) {
   return (
     <View style={styles.inputGroup}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, error && styles.inputError]}
         value={value}
         onChangeText={onChangeText}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
       />
+      {error ? <Text style={styles.fieldError}>{error}</Text> : null}
     </View>
   );
 }
@@ -407,6 +493,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: 12,
   },
+  inputError: {
+    borderColor: "#dc2626",
+  },
+  fieldError: {
+    color: "#dc2626",
+    fontSize: 13,
+    fontWeight: "700",
+    marginTop: 6,
+  },
   optionRow: {
     flexDirection: "row",
     gap: 10,
@@ -449,6 +544,16 @@ const styles = StyleSheet.create({
     opacity: 0.65,
   },
   submitButtonText: {
+    color: "#ffffff",
+    fontSize: 17,
+    fontWeight: "700",
+  },
+  submitButtonContent: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10,
+  },
+  savingText: {
     color: "#ffffff",
     fontSize: 17,
     fontWeight: "700",

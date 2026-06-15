@@ -7,13 +7,13 @@ export default function HomeScreen() {
       <Text style={styles.title}>Vet App</Text>
 
       <Text style={styles.subtitle}>
-        Gestión médica para veterinarios a domicilio
+        Gestión médica para clínicas, hospitales y atención veterinaria móvil
       </Text>
 
       <View style={styles.actions}>
         <Link href="/patients/search" asChild>
           <TouchableOpacity style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>🔍 Buscar paciente</Text>
+            <Text style={styles.primaryButtonText}>Buscar paciente</Text>
           </TouchableOpacity>
         </Link>
       </View>
@@ -21,7 +21,7 @@ export default function HomeScreen() {
       <View style={styles.actions}>
         <Link href="/patients/create" asChild>
           <TouchableOpacity style={styles.secondaryButton}>
-            <Text style={styles.primaryButtonText}>➕ Registrar paciente</Text>
+            <Text style={styles.primaryButtonText}>Registrar paciente</Text>
           </TouchableOpacity>
         </Link>
       </View>
