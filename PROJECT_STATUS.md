@@ -30,6 +30,9 @@ The latest local checks passed:
 - Kept a mobile global error fallback for unexpected API errors.
 - Manually validated the complete Tutor + Patient registration flow from the mobile app against the local API and database.
 - Confirmed duplicate Tutor RUT and duplicate Tutor email validation from the mobile app.
+- Completed a manual API smoke test with Postman for Tutor create, duplicate Tutor RUT/email, Patient create with valid and missing `tutorId`, Patient search, and Patient detail.
+- Removed `PROJECT_MEMORY.md` to avoid duplicated and stale project status documentation.
+- Created `README.md` with basic project commands.
 - Replaced raw Patient enum values with Spanish labels in Patient detail.
 - Removed duplicated Tutor fields from the Patient detail consultations section.
 - Replaced Expo starter `Explore` tab content with a Spanish app guide screen.
@@ -133,11 +136,13 @@ Prisma models exist for:
 - Complete Tutor + Patient registration flow was manually validated from the mobile app against the local API and database.
 - Duplicate Tutor RUT response was verified against the local API and database.
 - Duplicate Tutor email response was verified against the local API and database.
+- Manual API smoke test passed: Tutor create `201`, duplicate Tutor RUT `409`, duplicate Tutor email `409`, Patient create with valid `tutorId` `201`, Patient create with missing `tutorId` `404`, Patient search works, and Patient detail works.
 
 ## Risks Pending
 
 - `apps/mobile/src/services/api.ts` still hardcodes a local LAN IP address.
 - Automated test coverage has not been added.
+- `POST /api/tutors` does not validate Chilean RUT format yet; mobile validates RUT format, but direct API clients can send any value that passes the current minimum length rule.
 - Tutor creation and Patient creation are separate API calls; if Patient creation fails after Tutor creation, the Tutor remains created.
 - There is no authentication or user account flow.
 - Validation error responses are still not fully normalized beyond the duplicate Tutor cases.
@@ -145,9 +150,9 @@ Prisma models exist for:
 
 ## Recommended Next Steps
 
-1. Add a smoke test or manual checklist for Tutor + Patient registration.
-2. Add API tests for Tutor creation duplicate RUT/email behavior.
-3. Add API tests for Patient creation, Patient search, and Patient detail.
+1. Add automated API tests for Tutor creation, duplicate Tutor RUT/email behavior, Patient creation, Patient search, and Patient detail.
+2. Validate Chilean RUT format in the Tutor create API endpoint.
+3. Decide how to handle orphan Tutors if Patient creation fails after Tutor creation.
 4. Move the mobile API base URL out of hardcoded LAN IP configuration.
 5. Improve Patient search empty and error states.
 6. Implement Tutor detail/update/delete only when needed by the MVP workflow.
