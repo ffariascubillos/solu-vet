@@ -1,6 +1,0 @@
-// Correr Backend
-npm run dev:api
-
-// Correr expo mobile app
-cd .\apps\mobile\
-npx expo start

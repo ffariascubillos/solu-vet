@@ -10,7 +10,7 @@
 - Completed: create patient with returned `tutorId`.
 - Completed: navigate to patient detail after successful creation.
 - Completed: show Spanish loading and error states.
-- Next: validate the full flow against a live local database.
+- Completed: validate the full flow against a live local database from the mobile app.
 - Later: add a dedicated success state if the UX needs one beyond navigation to detail.
 
 ### Patient Lookup

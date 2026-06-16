@@ -2,7 +2,7 @@
 
 ## Project Status
 
-Last audited: 2026-06-15.
+Last audited: 2026-06-16.
 
 ## Current Reality
 
@@ -28,6 +28,8 @@ The latest local checks passed:
 - Added predictable `409 Conflict` responses for duplicate Tutor RUT and duplicate Tutor email.
 - Updated mobile duplicate-error handling so RUT/email errors are displayed next to the corresponding field.
 - Kept a mobile global error fallback for unexpected API errors.
+- Manually validated the complete Tutor + Patient registration flow from the mobile app against the local API and database.
+- Confirmed duplicate Tutor RUT and duplicate Tutor email validation from the mobile app.
 - Replaced raw Patient enum values with Spanish labels in Patient detail.
 - Removed duplicated Tutor fields from the Patient detail consultations section.
 - Replaced Expo starter `Explore` tab content with a Spanish app guide screen.
@@ -128,13 +130,13 @@ Prisma models exist for:
 - TypeScript API check passed.
 - TypeScript mobile check passed.
 - Mobile lint passed.
+- Complete Tutor + Patient registration flow was manually validated from the mobile app against the local API and database.
 - Duplicate Tutor RUT response was verified against the local API and database.
 - Duplicate Tutor email response was verified against the local API and database.
 
 ## Risks Pending
 
 - `apps/mobile/src/services/api.ts` still hardcodes a local LAN IP address.
-- Full mobile registration has not been verified end-to-end on a device during this audit.
 - Automated test coverage has not been added.
 - Tutor creation and Patient creation are separate API calls; if Patient creation fails after Tutor creation, the Tutor remains created.
 - There is no authentication or user account flow.
@@ -143,11 +145,10 @@ Prisma models exist for:
 
 ## Recommended Next Steps
 
-1. Validate the complete Tutor + Patient registration flow end-to-end from the mobile app against the local API and database.
-2. Move the mobile API base URL out of hardcoded LAN IP configuration.
-3. Add a smoke test or manual checklist for Tutor + Patient registration.
-4. Add API tests for Tutor creation duplicate RUT/email behavior.
-5. Add API tests for Patient creation, Patient search, and Patient detail.
-6. Improve Patient search empty and error states.
-7. Implement Tutor detail/update/delete only when needed by the MVP workflow.
-8. Implement Patient update/delete when the MVP requires record correction workflows.
+1. Add a smoke test or manual checklist for Tutor + Patient registration.
+2. Add API tests for Tutor creation duplicate RUT/email behavior.
+3. Add API tests for Patient creation, Patient search, and Patient detail.
+4. Move the mobile API base URL out of hardcoded LAN IP configuration.
+5. Improve Patient search empty and error states.
+6. Implement Tutor detail/update/delete only when needed by the MVP workflow.
+7. Implement Patient update/delete when the MVP requires record correction workflows.

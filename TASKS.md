@@ -2,7 +2,7 @@
 
 ## IN PROGRESS
 
-- [ ] Validate complete tutor + patient registration end-to-end from the mobile app against a live local database.
+- None.
 
 ## NEXT
 
@@ -26,7 +26,6 @@
 - [ ] Add API tests for tutor creation and patient creation.
 - [ ] Add API tests for duplicate tutor RUT and duplicate tutor email responses.
 - [ ] Add API tests for patient search and patient detail.
-- [ ] Validate complete registration flow from the mobile app against a live local database.
 
 ## DONE
 
@@ -56,6 +55,7 @@
 - [x] Predictable unique-constraint error response added for duplicate Tutor RUT/email handling.
 - [x] Duplicate Tutor RUT/email errors are shown near the corresponding mobile form field.
 - [x] Duplicate Tutor RUT/email responses verified against the local API and database.
+- [x] Complete Tutor + Patient registration flow manually validated from the mobile app against the local API and database.
 - [x] Documentation audit completed.
 
 ## Rules
