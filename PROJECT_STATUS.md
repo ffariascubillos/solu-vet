@@ -13,6 +13,7 @@ The project is an npm workspace monorepo with:
 
 The latest local checks passed:
 - `npm exec -w apps/api -- tsc --noEmit`
+- `npm test -w apps/api`
 - `npm exec -w apps/mobile -- tsc --noEmit`
 - `npm run lint -w apps/mobile`
 
@@ -38,6 +39,12 @@ The latest local checks passed:
 - Replaced Expo starter `Explore` tab content with a Spanish app guide screen.
 - Changed mobile tab labels to Spanish.
 - Updated home and detail copy to stay neutral for clinics, hospitals, home-visit, and mixed workflows.
+- Added API integration tests for the current Tutor and Patient smoke-test behavior.
+- Applied the existing Prisma migration to the local `solu_vet_test` database.
+- Added backend Chilean RUT validation and normalization for Tutor creation.
+- Split the mobile Tutor + Patient registration screen into separate Tutor and Patient steps.
+- Removed unused Expo starter mobile files and dependencies.
+- Updated the mobile tab layout to match the current Patient routes.
 
 ## Problems Resolved
 
@@ -53,6 +60,7 @@ The latest local checks passed:
 
 - Prisma schema, models, relations, routes, and generation strategy were not changed.
 - `Tutor.rut` remains `@unique`.
+- Tutor RUT values are normalized and validated in the API before Tutor creation.
 - `Tutor.email` remains `@unique`.
 - Duplicate Tutor validation is handled in `createTutor()` with explicit `findUnique()` checks for `rut` and `email`.
 - Central Prisma `P2002` handling remains in `error-handler.ts` as a fallback for concurrent duplicate writes.
@@ -116,6 +124,7 @@ Prisma models exist for:
 - Home screen links to Patient search and Patient registration.
 - Patient search calls the API and navigates to Patient detail.
 - Patient registration creates Tutor first, then creates Patient with the returned `tutorId`.
+- Patient registration now shows Tutor and Patient sections as separate steps to reduce long-form scrolling.
 - Patient registration shows Spanish field-level duplicate errors for Tutor RUT and Tutor email.
 - Patient registration shows loading state while saving.
 - Patient detail loads API data and shows Tutor, Patient, consultation summary, Spanish enum labels, and a Google Maps link from Tutor address.
@@ -131,6 +140,7 @@ Prisma models exist for:
 ## Verified Today
 
 - TypeScript API check passed.
+- API integration tests passed.
 - TypeScript mobile check passed.
 - Mobile lint passed.
 - Complete Tutor + Patient registration flow was manually validated from the mobile app against the local API and database.
@@ -141,8 +151,7 @@ Prisma models exist for:
 ## Risks Pending
 
 - `apps/mobile/src/services/api.ts` still hardcodes a local LAN IP address.
-- Automated test coverage has not been added.
-- `POST /api/tutors` does not validate Chilean RUT format yet; mobile validates RUT format, but direct API clients can send any value that passes the current minimum length rule.
+- Automated API test coverage is initial and focused on the Tutor and Patient MVP smoke flow.
 - Tutor creation and Patient creation are separate API calls; if Patient creation fails after Tutor creation, the Tutor remains created.
 - There is no authentication or user account flow.
 - Validation error responses are still not fully normalized beyond the duplicate Tutor cases.
@@ -150,10 +159,8 @@ Prisma models exist for:
 
 ## Recommended Next Steps
 
-1. Add automated API tests for Tutor creation, duplicate Tutor RUT/email behavior, Patient creation, Patient search, and Patient detail.
-2. Validate Chilean RUT format in the Tutor create API endpoint.
-3. Decide how to handle orphan Tutors if Patient creation fails after Tutor creation.
-4. Move the mobile API base URL out of hardcoded LAN IP configuration.
-5. Improve Patient search empty and error states.
-6. Implement Tutor detail/update/delete only when needed by the MVP workflow.
-7. Implement Patient update/delete when the MVP requires record correction workflows.
+1. Decide how to handle orphan Tutors if Patient creation fails after Tutor creation.
+2. Move the mobile API base URL out of hardcoded LAN IP configuration.
+3. Improve Patient search empty and error states.
+4. Implement Tutor detail/update/delete only when needed by the MVP workflow.
+5. Implement Patient update/delete when the MVP requires record correction workflows.

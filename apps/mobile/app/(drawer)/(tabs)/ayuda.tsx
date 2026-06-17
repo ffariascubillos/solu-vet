@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from 'react-native';
 
-export default function GuideScreen() {
+export default function Ayuda() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Guía rápida</Text>
@@ -33,9 +33,9 @@ export default function GuideScreen() {
 }
 
 const colors = {
-  background: "#0F172A",
-  text: "#F8FAFC",
-  muted: "#94A3B8",
+  background: '#0F172A',
+  text: '#F8FAFC',
+  muted: '#94A3B8',
 };
 
 const styles = StyleSheet.create({
@@ -43,28 +43,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     padding: 24,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   title: {
     color: colors.text,
     fontSize: 30,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 20,
   },
   section: {
-    backgroundColor: "#ffffff",
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     marginBottom: 14,
     padding: 16,
   },
   sectionTitle: {
-    color: "#0f172a",
+    color: '#0f172a',
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
     marginBottom: 8,
   },
   text: {
-    color: "#475569",
+    color: '#475569',
     fontSize: 15,
     lineHeight: 21,
   },

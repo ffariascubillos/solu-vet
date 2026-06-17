@@ -18,14 +18,11 @@
 - [ ] Add tutor delete endpoint.
 - [ ] Add patient update endpoint.
 - [ ] Add patient delete endpoint.
-- [ ] Validate Chilean RUT format in the Tutor create API endpoint.
 - [ ] Decide how to handle orphan tutors if patient creation fails after tutor creation.
 - [ ] Normalize validation error responses.
 
 ### Testing
-- [ ] Add API tests for tutor creation and patient creation.
-- [ ] Add API tests for duplicate tutor RUT and duplicate tutor email responses.
-- [ ] Add API tests for patient search and patient detail.
+- None.
 
 ## DONE
 
@@ -57,6 +54,12 @@
 - [x] Duplicate Tutor RUT/email responses verified against the local API and database.
 - [x] Complete Tutor + Patient registration flow manually validated from the mobile app against the local API and database.
 - [x] Manual API smoke test completed: Tutor create 201, duplicate RUT 409, duplicate email 409, Patient create with valid tutorId 201, Patient create with missing tutorId 404, Patient search works, and Patient detail works.
+- [x] API integration tests added for tutor creation and patient creation.
+- [x] API integration tests added for duplicate tutor RUT and duplicate tutor email responses.
+- [x] API integration tests added for patient search and patient detail.
+- [x] Chilean RUT format validation added to the Tutor create API endpoint.
+- [x] Mobile Tutor + Patient registration form split into separate steps.
+- [x] Unused Expo starter mobile files and dependencies removed.
 - [x] Documentation audit completed.
 
 ## Rules
