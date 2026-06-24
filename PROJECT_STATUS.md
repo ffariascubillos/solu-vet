@@ -2,7 +2,7 @@
 
 ## Project Status
 
-Last audited: 2026-06-23.
+Last audited: 2026-06-24.
 
 ## Current Reality
 
@@ -57,6 +57,13 @@ The latest local checks passed:
 - Added API integration tests for Tutor detail success and missing Tutor.
 - Fixed Tutor detail refresh after adding a Patient from the Tutor detail flow.
 - Fixed add-Patient navigation from Tutor detail so it reliably opens the Patient-only registration step.
+- Accepted that Tutors without Patients are valid MVP records.
+- Separated mobile Tutor registration into its own screen.
+- Simplified mobile Patient registration so it only creates Patients for an existing Tutor.
+- Updated main registration navigation to open Tutor registration first.
+- Updated the empty search registration action to open Tutor registration.
+- Verified the mobile TypeScript check and mobile lint after separating the flow.
+- Manually validated the separated Tutor registration and Patient-from-Tutor flow.
 
 ## Problems Resolved
 
@@ -73,6 +80,10 @@ The latest local checks passed:
 ## Technical Decisions
 
 - Prisma schema, models, relations, routes, and generation strategy were not changed.
+- Tutors without Patients are valid MVP records.
+- The orphan Tutor risk will be handled in the mobile workflow by making Tutor registration independent and finishing on Tutor detail.
+- Patient registration will start from an existing Tutor, usually from Tutor detail, instead of using a combined Tutor + Patient submit flow.
+- No combined Tutor + Patient endpoint or backend transaction is planned for this MVP flow.
 - `Tutor.rut` remains `@unique`.
 - Tutor RUT values are normalized and validated in the API before Tutor creation.
 - `Tutor.email` remains `@unique`.
@@ -80,13 +91,12 @@ The latest local checks passed:
 - Central Prisma `P2002` handling remains in `error-handler.ts` as a fallback for concurrent duplicate writes.
 - User-facing mobile messages remain in Spanish.
 - API route names, TypeScript names, Prisma models, and internal technical documentation remain in English.
-- Mobile registration keeps the two-step API flow instead of introducing a combined Tutor + Patient endpoint.
+- Mobile registration uses separate Tutor and Patient screens instead of introducing a combined Tutor + Patient endpoint.
 - Mobile sends empty optional Tutor email as `undefined`, so it is omitted from the JSON request body.
 - Patient search and Tutor search are separate user-facing modes.
 - Tutor search returns Tutors with their related Patients for quick access to existing pets.
-- The mobile registration flow creates Tutor once, then can create additional Patients using the same returned `tutor.id`.
-- Tutor detail is now the completion surface for the Tutor + Patient(s) registration flow.
-- Adding a Patient from Tutor detail reuses the existing registration screen with the Tutor preselected.
+- Tutor detail is now the completion surface after creating a Tutor.
+- Adding a Patient from Tutor detail reuses the Patient registration screen with the Tutor preselected.
 
 ## Current CRUD State
 
@@ -141,15 +151,13 @@ Prisma models exist for:
 
 ## Implemented Mobile App
 
-- Home screen links to Patient search and Patient registration.
+- Home screen links to Patient search and Tutor registration.
 - Patient search calls the API and navigates to Patient detail.
 - Patient search has separate Patient and Tutor modes, with empty, error, loading, and retry states.
 - Tutor search displays related Patients and opens Patient detail or Tutor detail from the Tutor result.
-- Patient registration creates Tutor first, then creates Patient with the returned `tutorId`.
-- Patient registration now shows Tutor and Patient sections as separate steps to reduce long-form scrolling.
-- Patient registration can add another Patient for the same saved Tutor before finishing on Tutor detail.
-- Patient registration can also start from a preselected Tutor and show only the Patient step.
-- Patient registration shows Spanish field-level duplicate errors for Tutor RUT and Tutor email.
+- Tutor registration creates a Tutor and navigates to Tutor detail.
+- Tutor registration shows Spanish validation, loading, and duplicate RUT/email field errors.
+- Patient registration starts from a selected Tutor, creates only a Patient with that `tutorId`, and returns to Tutor detail.
 - Patient registration shows loading state while saving.
 - Tutor detail loads API data and shows Tutor information, all related Patients, Patient detail links, Maps link, and an add-Patient action.
 - Patient detail loads API data and shows Tutor, Patient, consultation summary, Spanish enum labels, and a Google Maps link from Tutor address.
@@ -169,6 +177,8 @@ Prisma models exist for:
 - TypeScript mobile check passed.
 - Mobile lint passed.
 - Tutor detail refresh and preselected-Tutor Patient registration fix passed mobile TypeScript and lint checks.
+- Separate Tutor registration and Patient-only registration passed mobile TypeScript and lint checks.
+- Manual testing confirmed the separated Tutor registration and Patient-from-Tutor flow works correctly.
 - API integration tests required an elevated rerun because Vitest hit `spawn EPERM` inside the sandbox.
 - Live phone testing with Expo Go passed against the local API.
 - Patient search by Patient mode worked from the phone.
@@ -185,15 +195,13 @@ Prisma models exist for:
 
 - `apps/mobile/src/services/api.ts` still hardcodes a local LAN IP address.
 - Automated API test coverage is initial and focused on the Tutor and Patient MVP smoke flow.
-- Tutor creation and first Patient creation are separate API calls; if first Patient creation fails after Tutor creation, the Tutor remains created.
 - There is no authentication or user account flow.
 - Validation error responses are still not fully normalized beyond the duplicate Tutor cases.
 - Update/delete endpoints for Tutors and Patients are not implemented.
 
 ## Recommended Next Steps
 
-1. Decide how to handle orphan Tutors if Patient creation fails after Tutor creation.
-2. Move the mobile API base URL out of hardcoded LAN IP configuration.
-3. Improve Patient detail layout for phones and tablets.
-4. Implement Tutor update/delete only when needed by the MVP workflow.
-5. Implement Patient update/delete when the MVP requires record correction workflows.
+1. Move the mobile API base URL out of hardcoded LAN IP configuration.
+2. Improve Patient detail layout for phones and tablets.
+3. Implement Tutor update/delete only when needed by the MVP workflow.
+4. Implement Patient update/delete when the MVP requires record correction workflows.

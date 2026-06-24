@@ -15,7 +15,6 @@
 - [ ] Add tutor delete endpoint.
 - [ ] Add patient update endpoint.
 - [ ] Add patient delete endpoint.
-- [ ] Decide how to handle orphan tutors if patient creation fails after tutor creation.
 - [ ] Normalize validation error responses.
 
 ### Testing
@@ -71,6 +70,11 @@
 - [x] API integration tests added for Tutor detail success and missing Tutor.
 - [x] Tutor detail refreshes after adding a Patient from the Tutor detail flow.
 - [x] Tutor detail add-Patient action reliably opens the Patient-only registration step.
+- [x] Decided that Tutors without Patients are valid records; Tutor registration will finish on Tutor detail and Patients will be added from there.
+- [x] Created a dedicated Tutor registration screen.
+- [x] Simplified Patient registration so it only creates Patients for a selected Tutor.
+- [x] Updated main registration navigation to open Tutor registration first.
+- [x] Verified Tutor registration and Patient-only registration with mobile TypeScript and lint.
 
 ## Rules
 

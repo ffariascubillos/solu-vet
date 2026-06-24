@@ -34,7 +34,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="patients/create"
+        name="tutors/create"
         options={{
           title: 'Registrar',
           tabBarIcon: ({ color }) => (
@@ -53,6 +53,12 @@ export default function TabsLayout() {
               color={color}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="patients/create"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen

@@ -161,11 +161,11 @@ export default function SearchPatientScreen() {
           </Text>
           <Button
             mode="outlined"
-            onPress={() => router.push("/patients/create")}
+            onPress={() => router.push("/tutors/create" as Href)}
             textColor={colors.text}
             style={styles.retryButton}
             icon="plus">
-            Registrar paciente
+            Registrar tutor
           </Button>
         </View>
       ) : null}

@@ -10,6 +10,9 @@
 - Completed: create patient with returned `tutorId`.
 - Completed: finalize Tutor + Patient(s) registration on Tutor detail.
 - Completed: allow adding more Patients for a preselected Tutor from Tutor detail.
+- Completed: separate Tutor registration into its own mobile screen.
+- Completed: make Tutor detail the completion surface after creating a Tutor.
+- Completed: make Patient registration start from an existing Tutor only.
 - Completed: show Spanish loading and error states.
 - Completed: validate the full flow against a live local database from the mobile app.
 - Completed: add a registration success state for adding another Patient or finishing.

@@ -45,7 +45,7 @@ export default function HomeScreen() {
           </TouchableRipple>
         </Link>
 
-        <Link href="/patients/create" asChild>
+        <Link href="/tutors/create" asChild>
           <TouchableRipple style={styles.cardWrapper}>
             <Surface style={styles.card} elevation={1}>
               <MaterialCommunityIcons
@@ -53,7 +53,7 @@ export default function HomeScreen() {
                 size={30}
                 color="#38BDF8"
               />
-              <Text style={styles.cardText}>Registrar</Text>
+              <Text style={styles.cardText}>Registrar tutor</Text>
             </Surface>
           </TouchableRipple>
         </Link>

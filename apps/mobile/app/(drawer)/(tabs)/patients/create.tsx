@@ -1,4 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -8,62 +9,37 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { router, useLocalSearchParams, type Href } from 'expo-router';
-import {
-  Avatar,
-  Button,
-  Card,
-  HelperText,
-  SegmentedButtons,
-  Text,
-} from 'react-native-paper';
+import { Avatar, Button, Card, HelperText, Text } from 'react-native-paper';
 
 import { PatientForm } from '@/src/features/patients/components/PatientForm';
-import { TutorForm } from '@/src/features/patients/components/TutorForm';
 import {
   createPatient,
-  createTutor,
   getTutorById,
-  getTutorRegistrationError,
 } from '@/src/features/patients/patients.service';
 import {
   initialPatientForm,
-  initialTutorForm,
   PatientForm as PatientFormState,
-  TutorFieldErrors,
-  TutorForm as TutorFormState,
 } from '@/src/features/patients/registration.types';
-import {
-  normalizeRut,
-  validatePatientForm,
-  validateTutorForm,
-} from '@/src/features/patients/registration.validation';
-import type {
-  CreatePatientInput,
-  CreateTutorInput,
-  Tutor,
-} from '@/src/types/patient';
-
-type RegistrationStep = 'tutor' | 'patient';
+import { validatePatientForm } from '@/src/features/patients/registration.validation';
+import type { CreatePatientInput, TutorWithPatients } from '@/src/types/patient';
 
 export default function CreatePatientScreen() {
   const { tutorId } = useLocalSearchParams<{ tutorId?: string }>();
-  const [currentStep, setCurrentStep] = useState<RegistrationStep>('tutor');
-  const [tutorForm, setTutorForm] = useState<TutorFormState>(initialTutorForm);
   const [patientForm, setPatientForm] =
     useState<PatientFormState>(initialPatientForm);
-  const [loadingTutor, setLoadingTutor] = useState(false);
+  const [selectedTutor, setSelectedTutor] = useState<TutorWithPatients | null>(
+    null,
+  );
+  const [loadingTutor, setLoadingTutor] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [registeredTutor, setRegisteredTutor] = useState<Tutor | null>(null);
-  const [tutorFieldErrors, setTutorFieldErrors] = useState<TutorFieldErrors>(
-    {},
-  );
 
   useFocusEffect(
     useCallback(() => {
       if (typeof tutorId !== 'string' || !tutorId) {
+        setSelectedTutor(null);
+        setLoadingTutor(false);
+        setError('Selecciona un tutor antes de registrar una mascota.');
         return;
       }
 
@@ -77,18 +53,13 @@ export default function CreatePatientScreen() {
 
           const tutor = await getTutorById(selectedTutorId);
 
-          if (!isActive) {
-            return;
+          if (isActive) {
+            setSelectedTutor(tutor);
+            setPatientForm(initialPatientForm);
           }
-
-          setRegisteredTutor(tutor);
-          setTutorForm(initialTutorForm);
-          setPatientForm(initialPatientForm);
-          setTutorFieldErrors({});
-          setSuccessMessage('');
-          setCurrentStep('patient');
         } catch {
           if (isActive) {
+            setSelectedTutor(null);
             setError('No se pudo cargar el tutor seleccionado.');
           }
         } finally {
@@ -106,186 +77,106 @@ export default function CreatePatientScreen() {
     }, [tutorId]),
   );
 
-  function updateTutorField(field: keyof TutorFormState, value: string) {
-    setSuccessMessage('');
-    setTutorForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
-
-    if (field === 'rut' || field === 'email') {
-      setTutorFieldErrors((current) => ({
-        ...current,
-        [field]: undefined,
-      }));
-    }
-  }
-
   function updatePatientField<K extends keyof PatientFormState>(
     field: K,
     value: PatientFormState[K],
   ) {
-    setSuccessMessage('');
+    setError('');
     setPatientForm((current) => ({
       ...current,
       [field]: value,
     }));
   }
 
-  function goToPatientStep() {
-    if (registeredTutor) {
-      setError('');
-      setCurrentStep('patient');
-      return;
-    }
-
-    const validationError = validateTutorForm(tutorForm);
-
-    if (validationError) {
-      setError(validationError);
-      setTutorFieldErrors({});
-      setCurrentStep('tutor');
-      return;
-    }
-
-    setError('');
-    setCurrentStep('patient');
-  }
-
-  function handleStepChange(value: string) {
-    if (value === 'patient') {
-      goToPatientStep();
-      return;
-    }
-
-    setError('');
-    setCurrentStep('tutor');
-  }
-
-  function resetForm() {
-    setCurrentStep('tutor');
-    setTutorForm(initialTutorForm);
-    setPatientForm(initialPatientForm);
-    setError('');
-    setSuccessMessage('');
-    setRegisteredTutor(null);
-    setTutorFieldErrors({});
-  }
-
-  function buildTutorInput(): CreateTutorInput {
-    return {
-      firstName: tutorForm.firstName.trim(),
-      lastName: tutorForm.lastName.trim(),
-      address: tutorForm.address.trim(),
-      email: tutorForm.email.trim() || undefined,
-      phone: tutorForm.phone.trim(),
-      rut: normalizeRut(tutorForm.rut),
-    };
-  }
-
-  function buildPatientInput(tutorId: string): CreatePatientInput {
+  function buildPatientInput(tutor: TutorWithPatients): CreatePatientInput {
     const age = patientForm.age.trim()
       ? Number(patientForm.age.trim())
       : undefined;
-    const tutorLastName = registeredTutor?.lastName ?? tutorForm.lastName.trim();
 
     return {
       firstName: patientForm.firstName.trim(),
-      lastName: tutorLastName,
+      lastName: tutor.lastName,
       sex: patientForm.sex,
       age,
       species: patientForm.species.trim(),
       breed: patientForm.breed.trim() || undefined,
       reproductiveStatus: patientForm.reproductiveStatus,
-      tutorId,
+      tutorId: tutor.id,
     };
   }
 
   async function handleSubmit() {
-    const tutorValidationError = registeredTutor
-      ? ''
-      : validateTutorForm(tutorForm);
-    const patientValidationError = validatePatientForm(patientForm);
-
-    if (tutorValidationError) {
-      setError(tutorValidationError);
-      setTutorFieldErrors({});
-      setCurrentStep('tutor');
+    if (!selectedTutor) {
+      setError('Selecciona un tutor antes de registrar una mascota.');
       return;
     }
 
+    const patientValidationError = validatePatientForm(patientForm);
+
     if (patientValidationError) {
       setError(patientValidationError);
-      setCurrentStep('patient');
       return;
     }
 
     try {
       setSaving(true);
       setError('');
-      setSuccessMessage('');
-      setTutorFieldErrors({});
 
-      const tutor = registeredTutor ?? (await createTutor(buildTutorInput()));
-      setRegisteredTutor(tutor);
-
-      await createPatient(buildPatientInput(tutor.id));
+      await createPatient(buildPatientInput(selectedTutor));
 
       setPatientForm(initialPatientForm);
-      setCurrentStep('patient');
-      setSuccessMessage(
-        'Mascota registrada. Puedes agregar otra mascota para el mismo tutor o finalizar.',
+      router.replace(
+        `/tutors/${selectedTutor.id}?refresh=${Date.now()}` as Href,
       );
-    } catch (submitError) {
-      const tutorRegistrationError = getTutorRegistrationError(submitError);
-
-      if (tutorRegistrationError?.field) {
-        setTutorFieldErrors({
-          [tutorRegistrationError.field]: tutorRegistrationError.message,
-        });
-        setCurrentStep('tutor');
-        setError('');
-      } else if (tutorRegistrationError) {
-        setError(tutorRegistrationError.message);
-      } else {
-        setError(
-          'No se pudo registrar el tutor o el paciente. Revisa los datos e intenta nuevamente.',
-        );
-      }
+    } catch {
+      setError('No se pudo registrar la mascota. Revisa los datos e intenta nuevamente.');
     } finally {
       setSaving(false);
     }
   }
 
-  function handleAddAnotherPatient() {
-    setPatientForm(initialPatientForm);
-    setSuccessMessage('');
-    setError('');
-    setCurrentStep('patient');
+  function goToTutorSearch() {
+    router.replace('/patients/search' as Href);
   }
 
-  function handleViewTutor() {
-    if (!registeredTutor) {
-      return;
-    }
-
-    const selectedTutorId = registeredTutor.id;
-
-    resetForm();
-    router.replace(`/tutors/${selectedTutorId}?refresh=${Date.now()}` as Href);
+  function goToTutorRegistration() {
+    router.replace('/tutors/create' as Href);
   }
-
-  const selectedTutorFirstName =
-    registeredTutor?.firstName ?? tutorForm.firstName.trim();
-  const selectedTutorLastName =
-    registeredTutor?.lastName ?? tutorForm.lastName.trim();
-  const selectedTutorRut = registeredTutor?.rut ?? normalizeRut(tutorForm.rut);
 
   if (loadingTutor) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator />
         <Text style={styles.loadingText}>Cargando tutor...</Text>
+      </View>
+    );
+  }
+
+  if (!selectedTutor) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Avatar.Icon size={50} icon="account-alert" style={styles.logoIcon} />
+        <Text variant="headlineSmall" style={styles.title}>
+          Falta seleccionar tutor
+        </Text>
+        <Text style={styles.subtitle}>{error}</Text>
+        <View style={styles.actionRow}>
+          <Button
+            mode="outlined"
+            onPress={goToTutorSearch}
+            textColor={colors.text}
+            style={styles.secondaryButton}
+            icon="magnify">
+            Buscar tutor
+          </Button>
+          <Button
+            mode="contained"
+            onPress={goToTutorRegistration}
+            style={styles.submitButton}
+            icon="plus">
+            Registrar tutor
+          </Button>
+        </View>
       </View>
     );
   }
@@ -301,127 +192,46 @@ export default function CreatePatientScreen() {
         <View style={styles.header}>
           <Avatar.Icon size={50} icon="paw" style={styles.logoIcon} />
           <Text variant="headlineMedium" style={styles.title}>
-            Registro de paciente
+            Registrar mascota
           </Text>
           <Text variant="bodyMedium" style={styles.subtitle}>
-            Completa cada sección antes de guardar la ficha.
+            Agrega una mascota a la ficha del tutor seleccionado.
           </Text>
         </View>
 
-        <SegmentedButtons
-          value={currentStep}
-          onValueChange={handleStepChange}
-          style={styles.stepTabs}
-          buttons={[
-            {
-              value: 'tutor',
-              label: 'Tutor',
-              icon: 'account',
-              disabled: !!registeredTutor,
-            },
-            { value: 'patient', label: 'Paciente', icon: 'paw' },
-          ]}
-        />
+        <Card style={styles.summaryCard} mode="elevated">
+          <Card.Content>
+            <Text variant="labelLarge" style={styles.summaryLabel}>
+              Tutor seleccionado
+            </Text>
+            <Text style={styles.summaryText}>
+              {selectedTutor.firstName} {selectedTutor.lastName}
+            </Text>
+            <Text style={styles.summaryMuted}>RUT {selectedTutor.rut}</Text>
+          </Card.Content>
+        </Card>
 
-        {currentStep === 'tutor' ? (
-          <TutorForm
-            form={tutorForm}
-            fieldErrors={tutorFieldErrors}
-            onChangeField={updateTutorField}
-          />
-        ) : (
-          <>
-            <Card style={styles.summaryCard} mode="elevated">
-              <Card.Content>
-                <Text variant="labelLarge" style={styles.summaryLabel}>
-                  Tutor seleccionado
-                </Text>
-                <Text style={styles.summaryText}>
-                  {selectedTutorFirstName} {selectedTutorLastName}
-                </Text>
-                <Text style={styles.summaryMuted}>RUT {selectedTutorRut}</Text>
-              </Card.Content>
-            </Card>
+        <PatientForm form={patientForm} onChangeField={updatePatientField} />
 
-            <PatientForm
-              form={patientForm}
-              onChangeField={updatePatientField}
-            />
-          </>
-        )}
-
-        {error && (
+        {error ? (
           <HelperText
             type="error"
             visible={!!error}
             style={styles.generalError}>
             {error}
           </HelperText>
-        )}
+        ) : null}
 
-        {successMessage && (
-          <View style={styles.successBox}>
-            <Text style={styles.successText}>{successMessage}</Text>
-            <View style={styles.successActions}>
-              <Button
-                mode="outlined"
-                onPress={handleAddAnotherPatient}
-                disabled={saving}
-                textColor="#F8FAFC"
-                style={styles.secondaryButton}
-                icon="plus">
-                Agregar otra mascota
-              </Button>
-              <Button
-                mode="contained"
-                onPress={handleViewTutor}
-                disabled={saving || !registeredTutor}
-                style={styles.submitButton}
-                icon="file-eye">
-                Finalizar
-              </Button>
-            </View>
-          </View>
-        )}
-
-        {currentStep === 'tutor' ? (
-          <Button
-            mode="contained"
-            onPress={goToPatientStep}
-            disabled={saving}
-            style={styles.submitButton}
-            contentStyle={styles.submitButtonContent}
-            icon="arrow-right">
-            Continuar
-          </Button>
-        ) : (
-          <View style={styles.actionRow}>
-            {!registeredTutor && (
-              <Button
-                mode="outlined"
-                onPress={() => {
-                  setError('');
-                  setCurrentStep('tutor');
-                }}
-                disabled={saving}
-                style={styles.secondaryButton}
-                textColor="#F8FAFC"
-                icon="arrow-left">
-                Volver
-              </Button>
-            )}
-            <Button
-              mode="contained"
-              onPress={handleSubmit}
-              loading={saving}
-              disabled={saving}
-              style={styles.submitButton}
-              contentStyle={styles.submitButtonContent}
-              icon="check-circle">
-              {saving ? 'Registrando...' : 'Registrar mascota'}
-            </Button>
-          </View>
-        )}
+        <Button
+          mode="contained"
+          onPress={handleSubmit}
+          loading={saving}
+          disabled={saving}
+          style={styles.submitButton}
+          contentStyle={styles.submitButtonContent}
+          icon="check-circle">
+          {saving ? 'Registrando...' : 'Registrar mascota'}
+        </Button>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -479,9 +289,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
   },
-  stepTabs: {
-    marginBottom: 18,
-  },
   summaryCard: {
     backgroundColor: colors.card,
     borderRadius: 12,
@@ -510,26 +317,10 @@ const styles = StyleSheet.create({
     padding: 12,
     textAlign: 'center',
   },
-  successBox: {
-    backgroundColor: '#14532d',
-    borderRadius: 8,
-    marginBottom: 16,
-    padding: 12,
-  },
-  successText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  successActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
   actionRow: {
     flexDirection: 'row',
     gap: 12,
+    width: '100%',
   },
   secondaryButton: {
     borderColor: colors.muted,
@@ -540,7 +331,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderRadius: 8,
     flex: 1,
-    marginTop: 0,
   },
   submitButtonContent: {
     paddingVertical: 6,
