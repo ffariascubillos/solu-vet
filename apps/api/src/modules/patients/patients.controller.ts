@@ -67,22 +67,6 @@ export async function searchPatients(req: Request, res: Response) {
             mode: "insensitive",
           },
         },
-        {
-          tutor: {
-            firstName: {
-              contains: q,
-              mode: "insensitive",
-            },
-          },
-        },
-        {
-          tutor: {
-            lastName: {
-              contains: q,
-              mode: "insensitive",
-            },
-          },
-        },
       ],
     },
     include: {

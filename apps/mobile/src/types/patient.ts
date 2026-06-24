@@ -51,3 +51,7 @@ export type CreatePatientInput = {
 export type CreatedPatient = Omit<Patient, "tutor" | "consultations"> & {
   tutorId: string;
 };
+
+export type TutorWithPatients = Tutor & {
+  patients: CreatedPatient[];
+};

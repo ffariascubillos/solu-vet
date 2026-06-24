@@ -21,7 +21,7 @@ export default function HomeScreen() {
               color: '#22C55E',
               fontWeight: 'bold',
             }}>
-            Dra. Lola
+            Dra. Leslie
           </Text>
         </View>
         <Avatar.Image

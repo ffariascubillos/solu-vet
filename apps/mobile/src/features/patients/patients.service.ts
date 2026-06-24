@@ -6,11 +6,22 @@ import {
   CreateTutorInput,
   Patient,
   Tutor,
+  TutorWithPatients,
 } from "@/src/types/patient";
 
 type SearchPatientsResponse = {
   ok: boolean;
   data: Patient[];
+};
+
+type SearchTutorsResponse = {
+  ok: boolean;
+  data: TutorWithPatients[];
+};
+
+type GetTutorResponse = {
+  ok: boolean;
+  data: TutorWithPatients;
 };
 
 type GetPatientResponse = {
@@ -46,6 +57,22 @@ export async function searchPatients(query: string) {
 
 export async function getPatientById(id: string) {
   const response = await api.get<GetPatientResponse>(`/patients/${id}`);
+
+  return response.data.data;
+}
+
+export async function searchTutors(query: string) {
+  const response = await api.get<SearchTutorsResponse>("/tutors/search", {
+    params: {
+      q: query,
+    },
+  });
+
+  return response.data.data;
+}
+
+export async function getTutorById(id: string) {
+  const response = await api.get<GetTutorResponse>(`/tutors/${id}`);
 
   return response.data.data;
 }

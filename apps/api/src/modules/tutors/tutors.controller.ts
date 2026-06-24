@@ -53,3 +53,81 @@ export async function getTutors(_req: Request, res: Response) {
     data: tutors,
   })
 }
+
+export async function searchTutors(req: Request, res: Response) {
+  const q = String(req.query.q || "").trim()
+
+  if (!q) {
+    return res.status(400).json({
+      ok: false,
+      message: "Query parameter q is required",
+    })
+  }
+
+  const tutors = await prisma.tutor.findMany({
+    where: {
+      OR: [
+        {
+          firstName: {
+            contains: q,
+            mode: "insensitive",
+          },
+        },
+        {
+          lastName: {
+            contains: q,
+            mode: "insensitive",
+          },
+        },
+        {
+          rut: {
+            contains: q,
+            mode: "insensitive",
+          },
+        },
+      ],
+    },
+    include: {
+      patients: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  })
+
+  return res.json({
+    ok: true,
+    data: tutors,
+  })
+}
+
+export async function getTutorById(req: Request, res: Response) {
+  const id = String(req.params.id)
+
+  const tutor = await prisma.tutor.findUnique({
+    where: { id },
+    include: {
+      patients: {
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  })
+
+  if (!tutor) {
+    return res.status(404).json({
+      ok: false,
+      message: "Tutor not found",
+    })
+  }
+
+  return res.json({
+    ok: true,
+    data: tutor,
+  })
+}

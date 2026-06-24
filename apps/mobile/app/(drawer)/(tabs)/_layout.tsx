@@ -61,6 +61,12 @@ export default function TabsLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="tutors/[id]"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

@@ -8,20 +8,24 @@
 - Completed: validate required patient fields.
 - Completed: create tutor through the API.
 - Completed: create patient with returned `tutorId`.
-- Completed: navigate to patient detail after successful creation.
+- Completed: finalize Tutor + Patient(s) registration on Tutor detail.
+- Completed: allow adding more Patients for a preselected Tutor from Tutor detail.
 - Completed: show Spanish loading and error states.
 - Completed: validate the full flow against a live local database from the mobile app.
-- Later: add a dedicated success state if the UX needs one beyond navigation to detail.
+- Completed: add a registration success state for adding another Patient or finishing.
 
 ### Patient Lookup
-- Improve patient search empty state.
-- Improve patient search error state.
+- Completed: separate patient lookup by Patient and Tutor search modes.
+- Completed: improve patient search empty state.
+- Completed: improve patient search error state and retry behavior.
 - Improve patient detail layout for phones and tablets.
+- Completed: add Tutor detail screen with related Patients.
 - Completed: map backend enum values to Spanish UI labels in patient detail.
 - Completed: keep MVP registration/detail/home copy neutral for clinic, hospital, home-visit, and mixed workflows.
 
 ### API Completion For Core Records
-- Add tutor detail endpoint if needed by mobile flows.
+- Completed: add Tutor search endpoint with related Patients for mobile lookup.
+- Completed: add Tutor detail endpoint with related Patients for mobile flows.
 - Add tutor update endpoint.
 - Add tutor delete endpoint.
 - Add patient update endpoint.

@@ -196,7 +196,23 @@ describe("Tutor and Patient API", () => {
     })
   })
 
-  it("searches patients by patient name and tutor last name", async () => {
+  it("creates multiple patients for the same tutor", async () => {
+    const tutor = await createTutor()
+
+    const firstPatientResponse = await request(app)
+      .post("/api/patients")
+      .send(createPatientPayload(tutor.id, { firstName: "Luna" }))
+    const secondPatientResponse = await request(app)
+      .post("/api/patients")
+      .send(createPatientPayload(tutor.id, { firstName: "Mora" }))
+
+    expect(firstPatientResponse.status).toBe(201)
+    expect(secondPatientResponse.status).toBe(201)
+    expect(firstPatientResponse.body.data.tutorId).toBe(tutor.id)
+    expect(secondPatientResponse.body.data.tutorId).toBe(tutor.id)
+  })
+
+  it("searches patients by patient first and last name", async () => {
     const tutor = await createTutor({
       firstName: "Camila",
       lastName: "Rojas",
@@ -206,7 +222,12 @@ describe("Tutor and Patient API", () => {
 
     await request(app)
       .post("/api/patients")
-      .send(createPatientPayload(tutor.id, { firstName: "Mora" }))
+      .send(
+        createPatientPayload(tutor.id, {
+          firstName: "Mora",
+          lastName: "Campos",
+        }),
+      )
 
     const patientNameResponse = await request(app)
       .get("/api/patients/search")
@@ -222,14 +243,105 @@ describe("Tutor and Patient API", () => {
       },
     })
 
-    const tutorNameResponse = await request(app)
+    const patientLastNameResponse = await request(app)
       .get("/api/patients/search")
+      .query({ q: "Campos" })
+
+    expect(patientLastNameResponse.status).toBe(200)
+    expect(patientLastNameResponse.body.ok).toBe(true)
+    expect(patientLastNameResponse.body.data).toHaveLength(1)
+    expect(patientLastNameResponse.body.data[0].lastName).toBe("Campos")
+  })
+
+  it("searches tutors by name and rut with their patients", async () => {
+    const tutor = await createTutor({
+      firstName: "Camila",
+      lastName: "Rojas",
+      email: "camila.rojas@example.com",
+      rut: "22222222-2",
+    })
+
+    await request(app)
+      .post("/api/patients")
+      .send(createPatientPayload(tutor.id, { firstName: "Mora" }))
+    await request(app)
+      .post("/api/patients")
+      .send(createPatientPayload(tutor.id, { firstName: "Nala" }))
+
+    const tutorNameResponse = await request(app)
+      .get("/api/tutors/search")
       .query({ q: "Rojas" })
 
     expect(tutorNameResponse.status).toBe(200)
     expect(tutorNameResponse.body.ok).toBe(true)
     expect(tutorNameResponse.body.data).toHaveLength(1)
-    expect(tutorNameResponse.body.data[0].tutor.lastName).toBe("Rojas")
+    expect(tutorNameResponse.body.data[0]).toMatchObject({
+      id: tutor.id,
+      firstName: "Camila",
+      lastName: "Rojas",
+    })
+    expect(tutorNameResponse.body.data[0].patients).toHaveLength(2)
+
+    const tutorRutResponse = await request(app)
+      .get("/api/tutors/search")
+      .query({ q: "22222222" })
+
+    expect(tutorRutResponse.status).toBe(200)
+    expect(tutorRutResponse.body.ok).toBe(true)
+    expect(tutorRutResponse.body.data).toHaveLength(1)
+    expect(tutorRutResponse.body.data[0].rut).toBe("22222222-2")
+  })
+
+  it("gets tutor detail with patients", async () => {
+    const tutor = await createTutor({
+      firstName: "Camila",
+      lastName: "Rojas",
+      email: "camila.rojas@example.com",
+      rut: "22222222-2",
+    })
+
+    await request(app)
+      .post("/api/patients")
+      .send(createPatientPayload(tutor.id, { firstName: "Mora" }))
+    await request(app)
+      .post("/api/patients")
+      .send(createPatientPayload(tutor.id, { firstName: "Nala" }))
+
+    const response = await request(app).get(`/api/tutors/${tutor.id}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data).toMatchObject({
+      id: tutor.id,
+      firstName: "Camila",
+      lastName: "Rojas",
+    })
+    expect(response.body.data.patients).toHaveLength(2)
+    const patientNames = response.body.data.patients.map(
+      (patient: { firstName: string }) => patient.firstName,
+    )
+
+    expect(patientNames).toEqual(["Nala", "Mora"])
+  })
+
+  it("returns 404 when tutor detail is missing", async () => {
+    const response = await request(app).get("/api/tutors/missing-tutor-id")
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Tutor not found",
+    })
+  })
+
+  it("returns 400 when tutor search query is missing", async () => {
+    const response = await request(app).get("/api/tutors/search")
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Query parameter q is required",
+    })
   })
 
   it("returns 400 when patient search query is missing", async () => {

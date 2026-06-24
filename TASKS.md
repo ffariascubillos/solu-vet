@@ -7,13 +7,10 @@
 ## NEXT
 
 ### Mobile
-- [ ] Improve patient search empty state.
-- [ ] Improve patient search error state and retry behavior.
 - [ ] Improve patient detail layout for phones and tablets.
 - [ ] Move API base URL out of hardcoded LAN IP configuration.
 
 ### Backend
-- [ ] Add tutor detail endpoint if needed.
 - [ ] Add tutor update endpoint.
 - [ ] Add tutor delete endpoint.
 - [ ] Add patient update endpoint.
@@ -61,6 +58,19 @@
 - [x] Mobile Tutor + Patient registration form split into separate steps.
 - [x] Unused Expo starter mobile files and dependencies removed.
 - [x] Documentation audit completed.
+- [x] Patient lookup split into Patient and Tutor search modes.
+- [x] Patient search empty, error, loading, and retry states improved.
+- [x] Tutor search displays related Patients and opens Patient detail.
+- [x] Tutor search API added with related Patients included.
+- [x] Registration flow can add multiple Patients for the same saved Tutor.
+- [x] API integration tests added for Tutor search and multiple Patients per Tutor.
+- [x] Tutor detail API added with related Patients included.
+- [x] Mobile Tutor detail screen added with related Patients and Patient detail links.
+- [x] Registration flow now finalizes on Tutor detail after adding one or more Patients.
+- [x] Tutor detail can open Patient-only registration for the selected Tutor.
+- [x] API integration tests added for Tutor detail success and missing Tutor.
+- [x] Tutor detail refreshes after adding a Patient from the Tutor detail flow.
+- [x] Tutor detail add-Patient action reliably opens the Patient-only registration step.
 
 ## Rules
 

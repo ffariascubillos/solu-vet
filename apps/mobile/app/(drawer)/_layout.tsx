@@ -20,7 +20,7 @@ function CustomDrawerContent(props: ComponentProps<typeof DrawerItemList>) {
           style={styles.avatar}
         />
         <Text variant="titleLarge" style={styles.userName}>
-          Dra. Lola
+          Dra. Leslie
         </Text>
         <Text variant="bodySmall" style={styles.userRole}>
           Veterinario Principal

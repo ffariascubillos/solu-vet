@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import {
   Avatar,
   Button,
@@ -21,6 +23,7 @@ import { TutorForm } from '@/src/features/patients/components/TutorForm';
 import {
   createPatient,
   createTutor,
+  getTutorById,
   getTutorRegistrationError,
 } from '@/src/features/patients/patients.service';
 import {
@@ -35,22 +38,76 @@ import {
   validatePatientForm,
   validateTutorForm,
 } from '@/src/features/patients/registration.validation';
-import type { CreatePatientInput, CreateTutorInput } from '@/src/types/patient';
+import type {
+  CreatePatientInput,
+  CreateTutorInput,
+  Tutor,
+} from '@/src/types/patient';
 
 type RegistrationStep = 'tutor' | 'patient';
 
 export default function CreatePatientScreen() {
+  const { tutorId } = useLocalSearchParams<{ tutorId?: string }>();
   const [currentStep, setCurrentStep] = useState<RegistrationStep>('tutor');
   const [tutorForm, setTutorForm] = useState<TutorFormState>(initialTutorForm);
   const [patientForm, setPatientForm] =
     useState<PatientFormState>(initialPatientForm);
+  const [loadingTutor, setLoadingTutor] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [registeredTutor, setRegisteredTutor] = useState<Tutor | null>(null);
   const [tutorFieldErrors, setTutorFieldErrors] = useState<TutorFieldErrors>(
     {},
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      if (typeof tutorId !== 'string' || !tutorId) {
+        return;
+      }
+
+      const selectedTutorId = tutorId;
+      let isActive = true;
+
+      async function loadSelectedTutor() {
+        try {
+          setLoadingTutor(true);
+          setError('');
+
+          const tutor = await getTutorById(selectedTutorId);
+
+          if (!isActive) {
+            return;
+          }
+
+          setRegisteredTutor(tutor);
+          setTutorForm(initialTutorForm);
+          setPatientForm(initialPatientForm);
+          setTutorFieldErrors({});
+          setSuccessMessage('');
+          setCurrentStep('patient');
+        } catch {
+          if (isActive) {
+            setError('No se pudo cargar el tutor seleccionado.');
+          }
+        } finally {
+          if (isActive) {
+            setLoadingTutor(false);
+          }
+        }
+      }
+
+      loadSelectedTutor();
+
+      return () => {
+        isActive = false;
+      };
+    }, [tutorId]),
+  );
+
   function updateTutorField(field: keyof TutorFormState, value: string) {
+    setSuccessMessage('');
     setTutorForm((current) => ({
       ...current,
       [field]: value,
@@ -68,6 +125,7 @@ export default function CreatePatientScreen() {
     field: K,
     value: PatientFormState[K],
   ) {
+    setSuccessMessage('');
     setPatientForm((current) => ({
       ...current,
       [field]: value,
@@ -75,6 +133,12 @@ export default function CreatePatientScreen() {
   }
 
   function goToPatientStep() {
+    if (registeredTutor) {
+      setError('');
+      setCurrentStep('patient');
+      return;
+    }
+
     const validationError = validateTutorForm(tutorForm);
 
     if (validationError) {
@@ -103,6 +167,8 @@ export default function CreatePatientScreen() {
     setTutorForm(initialTutorForm);
     setPatientForm(initialPatientForm);
     setError('');
+    setSuccessMessage('');
+    setRegisteredTutor(null);
     setTutorFieldErrors({});
   }
 
@@ -121,10 +187,11 @@ export default function CreatePatientScreen() {
     const age = patientForm.age.trim()
       ? Number(patientForm.age.trim())
       : undefined;
+    const tutorLastName = registeredTutor?.lastName ?? tutorForm.lastName.trim();
 
     return {
       firstName: patientForm.firstName.trim(),
-      lastName: tutorForm.lastName.trim(),
+      lastName: tutorLastName,
       sex: patientForm.sex,
       age,
       species: patientForm.species.trim(),
@@ -135,7 +202,9 @@ export default function CreatePatientScreen() {
   }
 
   async function handleSubmit() {
-    const tutorValidationError = validateTutorForm(tutorForm);
+    const tutorValidationError = registeredTutor
+      ? ''
+      : validateTutorForm(tutorForm);
     const patientValidationError = validatePatientForm(patientForm);
 
     if (tutorValidationError) {
@@ -154,17 +223,19 @@ export default function CreatePatientScreen() {
     try {
       setSaving(true);
       setError('');
+      setSuccessMessage('');
       setTutorFieldErrors({});
 
-      const tutor = await createTutor(buildTutorInput());
-      const patient = await createPatient(buildPatientInput(tutor.id));
+      const tutor = registeredTutor ?? (await createTutor(buildTutorInput()));
+      setRegisteredTutor(tutor);
 
-      resetForm();
+      await createPatient(buildPatientInput(tutor.id));
 
-      router.replace({
-        pathname: '/patients/[id]',
-        params: { id: patient.id },
-      });
+      setPatientForm(initialPatientForm);
+      setCurrentStep('patient');
+      setSuccessMessage(
+        'Mascota registrada. Puedes agregar otra mascota para el mismo tutor o finalizar.',
+      );
     } catch (submitError) {
       const tutorRegistrationError = getTutorRegistrationError(submitError);
 
@@ -184,6 +255,39 @@ export default function CreatePatientScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleAddAnotherPatient() {
+    setPatientForm(initialPatientForm);
+    setSuccessMessage('');
+    setError('');
+    setCurrentStep('patient');
+  }
+
+  function handleViewTutor() {
+    if (!registeredTutor) {
+      return;
+    }
+
+    const selectedTutorId = registeredTutor.id;
+
+    resetForm();
+    router.replace(`/tutors/${selectedTutorId}?refresh=${Date.now()}` as Href);
+  }
+
+  const selectedTutorFirstName =
+    registeredTutor?.firstName ?? tutorForm.firstName.trim();
+  const selectedTutorLastName =
+    registeredTutor?.lastName ?? tutorForm.lastName.trim();
+  const selectedTutorRut = registeredTutor?.rut ?? normalizeRut(tutorForm.rut);
+
+  if (loadingTutor) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator />
+        <Text style={styles.loadingText}>Cargando tutor...</Text>
+      </View>
+    );
   }
 
   return (
@@ -209,7 +313,12 @@ export default function CreatePatientScreen() {
           onValueChange={handleStepChange}
           style={styles.stepTabs}
           buttons={[
-            { value: 'tutor', label: 'Tutor', icon: 'account' },
+            {
+              value: 'tutor',
+              label: 'Tutor',
+              icon: 'account',
+              disabled: !!registeredTutor,
+            },
             { value: 'patient', label: 'Paciente', icon: 'paw' },
           ]}
         />
@@ -228,11 +337,9 @@ export default function CreatePatientScreen() {
                   Tutor seleccionado
                 </Text>
                 <Text style={styles.summaryText}>
-                  {tutorForm.firstName.trim()} {tutorForm.lastName.trim()}
+                  {selectedTutorFirstName} {selectedTutorLastName}
                 </Text>
-                <Text style={styles.summaryMuted}>
-                  RUT {normalizeRut(tutorForm.rut)}
-                </Text>
+                <Text style={styles.summaryMuted}>RUT {selectedTutorRut}</Text>
               </Card.Content>
             </Card>
 
@@ -252,6 +359,31 @@ export default function CreatePatientScreen() {
           </HelperText>
         )}
 
+        {successMessage && (
+          <View style={styles.successBox}>
+            <Text style={styles.successText}>{successMessage}</Text>
+            <View style={styles.successActions}>
+              <Button
+                mode="outlined"
+                onPress={handleAddAnotherPatient}
+                disabled={saving}
+                textColor="#F8FAFC"
+                style={styles.secondaryButton}
+                icon="plus">
+                Agregar otra mascota
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleViewTutor}
+                disabled={saving || !registeredTutor}
+                style={styles.submitButton}
+                icon="file-eye">
+                Finalizar
+              </Button>
+            </View>
+          </View>
+        )}
+
         {currentStep === 'tutor' ? (
           <Button
             mode="contained"
@@ -264,18 +396,20 @@ export default function CreatePatientScreen() {
           </Button>
         ) : (
           <View style={styles.actionRow}>
-            <Button
-              mode="outlined"
-              onPress={() => {
-                setError('');
-                setCurrentStep('tutor');
-              }}
-              disabled={saving}
-              style={styles.secondaryButton}
-              textColor="#F8FAFC"
-              icon="arrow-left">
-              Volver
-            </Button>
+            {!registeredTutor && (
+              <Button
+                mode="outlined"
+                onPress={() => {
+                  setError('');
+                  setCurrentStep('tutor');
+                }}
+                disabled={saving}
+                style={styles.secondaryButton}
+                textColor="#F8FAFC"
+                icon="arrow-left">
+                Volver
+              </Button>
+            )}
             <Button
               mode="contained"
               onPress={handleSubmit}
@@ -284,7 +418,7 @@ export default function CreatePatientScreen() {
               style={styles.submitButton}
               contentStyle={styles.submitButtonContent}
               icon="check-circle">
-              {saving ? 'Registrando...' : 'Registrar'}
+              {saving ? 'Registrando...' : 'Registrar mascota'}
             </Button>
           </View>
         )}
@@ -309,6 +443,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    flex: 1,
+    justifyContent: 'center',
+    padding: 24,
+  },
+  loadingText: {
+    color: colors.text,
+    marginTop: 12,
   },
   content: {
     padding: 20,
@@ -364,6 +509,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 12,
     textAlign: 'center',
+  },
+  successBox: {
+    backgroundColor: '#14532d',
+    borderRadius: 8,
+    marginBottom: 16,
+    padding: 12,
+  },
+  successText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  successActions: {
+    flexDirection: 'row',
+    gap: 12,
   },
   actionRow: {
     flexDirection: 'row',

@@ -1,91 +1,255 @@
-import { searchPatients } from "@/src/features/patients/patients.service";
-import { Patient } from "@/src/types/patient";
-import { router } from "expo-router";
+import {
+  searchPatients,
+  searchTutors,
+} from "@/src/features/patients/patients.service";
+import { Patient, TutorWithPatients } from "@/src/types/patient";
+import { router, type Href } from "expo-router";
 import { useState } from "react";
 import {
+  ActivityIndicator,
+  FlatList,
   StyleSheet,
-  View,
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
-  FlatList,
+  View,
 } from "react-native";
+import { Button, SegmentedButtons } from "react-native-paper";
+
+type SearchMode = "patient" | "tutor";
+
+const searchPrompts: Record<SearchMode, string> = {
+  patient: "Escribe un nombre o apellido de paciente.",
+  tutor: "Escribe un nombre, apellido o RUT del tutor.",
+};
 
 export default function SearchPatientScreen() {
   const [query, setQuery] = useState("");
+  const [searchMode, setSearchMode] = useState<SearchMode>("patient");
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [tutors, setTutors] = useState<TutorWithPatients[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
+
+  function clearResults() {
+    setPatients([]);
+    setTutors([]);
+    setError("");
+    setHasSearched(false);
+  }
+
+  function handleModeChange(value: string) {
+    setSearchMode(value as SearchMode);
+    clearResults();
+  }
 
   async function handleSearch() {
-    if (!query.trim()) {
-      setError("Escribe un nombre de paciente o tutor");
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
+      setError(searchPrompts[searchMode]);
       return;
     }
 
     try {
       setLoading(true);
       setError("");
+      setHasSearched(true);
 
-      const results = await searchPatients(query);
+      if (searchMode === "patient") {
+        const results = await searchPatients(trimmedQuery);
 
-      setPatients(results);
+        setPatients(results);
+        setTutors([]);
+      } else {
+        const results = await searchTutors(trimmedQuery);
+
+        setTutors(results);
+        setPatients([]);
+      }
     } catch {
-      setError("No se pudo buscar. Revisa la conexión con la API.");
+      setError(
+        "No se pudo completar la búsqueda. Revisa la conexión e intenta nuevamente.",
+      );
     } finally {
       setLoading(false);
     }
   }
 
+  const showPatientEmptyState =
+    searchMode === "patient" &&
+    hasSearched &&
+    !loading &&
+    !error &&
+    !patients.length;
+  const showTutorEmptyState =
+    searchMode === "tutor" &&
+    hasSearched &&
+    !loading &&
+    !error &&
+    !tutors.length;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Buscar paciente</Text>
+      <Text style={styles.subtitle}>
+        Busca por paciente o por tutor según el dato que tengas a mano.
+      </Text>
+
+      <SegmentedButtons
+        value={searchMode}
+        onValueChange={handleModeChange}
+        style={styles.modeTabs}
+        buttons={[
+          { value: "patient", label: "Paciente", icon: "paw" },
+          { value: "tutor", label: "Tutor", icon: "account" },
+        ]}
+      />
 
       <TextInput
         style={styles.input}
-        placeholder="Nombre de paciente o tutor"
+        placeholder={
+          searchMode === "patient"
+            ? "Nombre o apellido del paciente"
+            : "Nombre, apellido o RUT del tutor"
+        }
         value={query}
         onChangeText={setQuery}
-        autoCapitalize="words"
-      ></TextInput>
+        autoCapitalize={searchMode === "tutor" ? "characters" : "words"}
+      />
 
-      <TouchableOpacity style={styles.primaryButton} onPress={handleSearch}>
-        <Text style={styles.primaryButtonText}>Buscar</Text>
-      </TouchableOpacity>
+      <Button
+        mode="contained"
+        onPress={handleSearch}
+        loading={loading}
+        disabled={loading}
+        style={styles.primaryButton}
+        contentStyle={styles.primaryButtonContent}
+        icon="magnify">
+        {loading ? "Buscando..." : "Buscar"}
+      </Button>
 
       {loading && <ActivityIndicator style={styles.loader} />}
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <View style={styles.feedbackBox}>
+          <Text style={styles.error}>{error}</Text>
+          {query.trim() ? (
+            <Button
+              mode="outlined"
+              onPress={handleSearch}
+              disabled={loading}
+              textColor={colors.text}
+              style={styles.retryButton}
+              icon="refresh">
+              Reintentar
+            </Button>
+          ) : null}
+        </View>
+      ) : null}
 
-      <FlatList
-        data={patients}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() =>
-              router.push({
-                pathname: "/patients/[id]",
-                params: { id: item.id },
-              })
-            }
-          >
-            <Text style={styles.patientName}>
-              {item.firstName} {item.lastName}
-            </Text>
+      {showPatientEmptyState || showTutorEmptyState ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>
+            {searchMode === "patient"
+              ? "No encontramos pacientes"
+              : "No encontramos tutores"}
+          </Text>
+          <Text style={styles.emptyText}>
+            Revisa el texto de búsqueda o registra una nueva ficha.
+          </Text>
+          <Button
+            mode="outlined"
+            onPress={() => router.push("/patients/create")}
+            textColor={colors.text}
+            style={styles.retryButton}
+            icon="plus">
+            Registrar paciente
+          </Button>
+        </View>
+      ) : null}
 
-            <Text style={styles.cardText}>
-              Tutor: {item.tutor.firstName} {item.tutor.lastName}
-            </Text>
+      {searchMode === "patient" ? (
+        <FlatList
+          data={patients}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() =>
+                router.push({
+                  pathname: "/patients/[id]",
+                  params: { id: item.id },
+                })
+              }>
+              <Text style={styles.resultTitle}>
+                {item.firstName} {item.lastName}
+              </Text>
 
-            <Text style={styles.cardText}>Especie: {item.species}</Text>
+              <Text style={styles.cardText}>
+                Tutor: {item.tutor.firstName} {item.tutor.lastName}
+              </Text>
 
-            <Text style={styles.cardText}>Teléfono: {item.tutor.phone}</Text>
-          </TouchableOpacity>
-        )}
-      />
+              <Text style={styles.cardText}>Especie: {item.species}</Text>
+
+              <Text style={styles.cardText}>Teléfono: {item.tutor.phone}</Text>
+            </TouchableOpacity>
+          )}
+        />
+      ) : (
+        <FlatList
+          data={tutors}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <Text style={styles.resultTitle}>
+                {item.firstName} {item.lastName}
+              </Text>
+              <Text style={styles.cardText}>RUT: {item.rut}</Text>
+              <Text style={styles.cardText}>Teléfono: {item.phone}</Text>
+              <Text style={styles.cardText}>
+                Correo: {item.email || "No registrado"}
+              </Text>
+
+              <Button
+                mode="outlined"
+                onPress={() => router.push(`/tutors/${item.id}` as Href)}
+                textColor="#0f172a"
+                style={styles.tutorDetailButton}
+                icon="file-eye">
+                Ver ficha del tutor
+              </Button>
+
+              <Text style={styles.patientListTitle}>Mascotas</Text>
+              {item.patients.length ? (
+                item.patients.map((patient) => (
+                  <TouchableOpacity
+                    key={patient.id}
+                    style={styles.patientRow}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/patients/[id]",
+                        params: { id: patient.id },
+                      })
+                    }>
+                    <Text style={styles.patientRowTitle}>
+                      {patient.firstName} {patient.lastName}
+                    </Text>
+                    <Text style={styles.patientRowText}>
+                      {patient.species}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={styles.cardText}>Sin pacientes registrados</Text>
+              )}
+            </View>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -93,8 +257,6 @@ export default function SearchPatientScreen() {
 const colors = {
   background: "#0F172A",
   primary: "#22C55E",
-  secondary: "#38BDF8",
-  secondaryDark: "#0284C7",
   text: "#F8FAFC",
   muted: "#94A3B8",
 };
@@ -104,13 +266,20 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     backgroundColor: colors.background,
-    justifyContent: "center",
   },
   title: {
     fontSize: 28,
     fontWeight: "700",
     color: colors.text,
-    marginBottom: 20,
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: colors.muted,
+    fontSize: 15,
+    marginBottom: 16,
+  },
+  modeTabs: {
+    marginBottom: 16,
   },
   input: {
     backgroundColor: "#ffffff",
@@ -123,33 +292,49 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     backgroundColor: colors.primary,
-    padding: 18,
     borderRadius: 8,
-    alignItems: "center",
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 5,
   },
-  primaryButtonText: {
-    color: "#ffffff",
-    fontSize: 17,
-    fontWeight: "700",
-  },
-  text: {
-    fontSize: 16,
-    color: "#475569",
+  primaryButtonContent: {
+    paddingVertical: 6,
   },
   loader: {
     marginTop: 20,
+  },
+  feedbackBox: {
+    marginTop: 16,
   },
   error: {
     backgroundColor: "#fc2626",
     padding: 8,
     borderRadius: 8,
     color: "#ffffff",
-    marginTop: 16,
+    fontSize: 15,
+  },
+  retryButton: {
+    borderColor: colors.muted,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  emptyState: {
+    borderColor: "#334155",
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 20,
+    padding: 16,
+  },
+  emptyTitle: {
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  emptyText: {
+    color: colors.muted,
     fontSize: 15,
   },
   list: {
@@ -159,11 +344,11 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#ffffff",
     padding: 16,
-    borderRadius: 14,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#e2e8f0",
   },
-  patientName: {
+  resultTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#0f172a",
@@ -173,5 +358,34 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#475569",
     marginBottom: 4,
+  },
+  patientListTitle: {
+    color: "#0f172a",
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 8,
+    marginTop: 10,
+  },
+  tutorDetailButton: {
+    borderColor: "#cbd5e1",
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  patientRow: {
+    backgroundColor: "#f8fafc",
+    borderColor: "#e2e8f0",
+    borderRadius: 8,
+    borderWidth: 1,
+    marginTop: 8,
+    padding: 12,
+  },
+  patientRowTitle: {
+    color: "#0f172a",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  patientRowText: {
+    color: "#475569",
+    marginTop: 2,
   },
 });
