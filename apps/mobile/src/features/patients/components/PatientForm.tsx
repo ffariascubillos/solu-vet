@@ -1,13 +1,18 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   Avatar,
   Card,
+  HelperText,
   SegmentedButtons,
   Text,
   TextInput,
 } from 'react-native-paper';
 
-import type { CreatePatientInput } from '@/src/types/patient';
+import { getBreeds, getSpecies } from '../patients.service';
+import { SelectField } from './SelectField';
+
+import type { Breed, CreatePatientInput, Species } from '@/src/types/patient';
 import type { PatientForm as PatientFormState } from '../registration.types';
 
 type PatientFormProps = {
@@ -19,6 +24,61 @@ type PatientFormProps = {
 };
 
 export function PatientForm({ form, onChangeField }: PatientFormProps) {
+  const [speciesOptions, setSpeciesOptions] = useState<Species[]>([]);
+  const [breedOptions, setBreedOptions] = useState<Breed[]>([]);
+  const [loadingBreeds, setLoadingBreeds] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadSpecies() {
+      try {
+        const results = await getSpecies();
+        if (isActive) setSpeciesOptions(results);
+      } catch {
+        if (isActive) setSpeciesOptions([]);
+      }
+    }
+
+    loadSpecies();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!form.speciesId) {
+      setBreedOptions([]);
+      return;
+    }
+
+    let isActive = true;
+
+    async function loadBreeds(speciesId: string) {
+      try {
+        setLoadingBreeds(true);
+        const results = await getBreeds(speciesId);
+        if (isActive) setBreedOptions(results);
+      } catch {
+        if (isActive) setBreedOptions([]);
+      } finally {
+        if (isActive) setLoadingBreeds(false);
+      }
+    }
+
+    loadBreeds(form.speciesId);
+
+    return () => {
+      isActive = false;
+    };
+  }, [form.speciesId]);
+
+  function handleSpeciesChange(value: string) {
+    onChangeField('speciesId', value);
+    onChangeField('breedId', '');
+  }
+
   return (
     <Card style={styles.card} mode="elevated">
       <Card.Title
@@ -60,20 +120,38 @@ export function PatientForm({ form, onChangeField }: PatientFormProps) {
           value={form.age}
           onChangeText={(value) => onChangeField('age', value)}
         />
-        <TextInput
-          style={styles.input}
+
+        <SelectField
           label="Especie"
-          mode="outlined"
-          value={form.species}
-          onChangeText={(value) => onChangeField('species', value)}
+          value={form.speciesId}
+          placeholder="Selecciona una especie"
+          options={speciesOptions.map((species) => ({
+            value: species.id,
+            label: species.name,
+          }))}
+          onSelect={handleSpeciesChange}
         />
-        <TextInput
-          style={styles.input}
+
+        <SelectField
           label="Raza"
-          mode="outlined"
-          value={form.breed}
-          onChangeText={(value) => onChangeField('breed', value)}
+          value={form.breedId}
+          placeholder={
+            form.speciesId
+              ? 'Selecciona una raza'
+              : 'Selecciona una especie primero'
+          }
+          options={breedOptions.map((breed) => ({
+            value: breed.id,
+            label: breed.name,
+          }))}
+          onSelect={(value) => onChangeField('breedId', value)}
+          disabled={!form.speciesId || loadingBreeds}
         />
+        {loadingBreeds ? (
+          <HelperText type="info" visible>
+            Cargando razas...
+          </HelperText>
+        ) : null}
 
         <View style={styles.selectorGroup}>
           <Text variant="labelLarge" style={styles.label}>

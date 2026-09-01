@@ -89,6 +89,10 @@ export async function searchTutors(req: Request, res: Response) {
     },
     include: {
       patients: {
+        include: {
+          species: true,
+          breed: true,
+        },
         orderBy: {
           createdAt: "desc",
         },
@@ -112,6 +116,10 @@ export async function getTutorById(req: Request, res: Response) {
     where: { id },
     include: {
       patients: {
+        include: {
+          species: true,
+          breed: true,
+        },
         orderBy: {
           createdAt: "desc",
         },

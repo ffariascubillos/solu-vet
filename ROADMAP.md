@@ -29,11 +29,13 @@
 ### API Completion For Core Records
 - Completed: add Tutor search endpoint with related Patients for mobile lookup.
 - Completed: add Tutor detail endpoint with related Patients for mobile flows.
+- Completed: replace free-text `Patient.species`/`Patient.breed` with `Species`/`Breed` reference tables, seeded catalog, and read-only `/api/species` and `/api/breeds` endpoints.
 - Add tutor update endpoint.
 - Add tutor delete endpoint.
 - Add patient update endpoint.
 - Add patient delete endpoint.
 - Return predictable validation and unique-constraint errors.
+- Add an admin-only CRUD maintainer for species and breeds (depends on authentication with roles — see Future Platform Features).
 
 ## Phase 2 - Clinical Workflow
 

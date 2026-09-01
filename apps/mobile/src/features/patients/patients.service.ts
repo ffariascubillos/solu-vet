@@ -1,10 +1,12 @@
 import { api } from "@/src/services/api";
 import { isAxiosError } from "axios";
 import {
+  Breed,
   CreatedPatient,
   CreatePatientInput,
   CreateTutorInput,
   Patient,
+  Species,
   Tutor,
   TutorWithPatients,
 } from "@/src/types/patient";
@@ -37,6 +39,16 @@ type CreateTutorResponse = {
 type CreatePatientResponse = {
   ok: boolean;
   data: CreatedPatient;
+};
+
+type GetSpeciesResponse = {
+  ok: boolean;
+  data: Species[];
+};
+
+type GetBreedsResponse = {
+  ok: boolean;
+  data: Breed[];
 };
 
 type ApiErrorResponse = {
@@ -85,6 +97,20 @@ export async function createTutor(data: CreateTutorInput) {
 
 export async function createPatient(data: CreatePatientInput) {
   const response = await api.post<CreatePatientResponse>("/patients", data);
+
+  return response.data.data;
+}
+
+export async function getSpecies() {
+  const response = await api.get<GetSpeciesResponse>("/species");
+
+  return response.data.data;
+}
+
+export async function getBreeds(speciesId: string) {
+  const response = await api.get<GetBreedsResponse>("/breeds", {
+    params: { speciesId },
+  });
 
   return response.data.data;
 }

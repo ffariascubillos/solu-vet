@@ -192,7 +192,7 @@ export default function SearchPatientScreen() {
                 Tutor: {item.tutor.firstName} {item.tutor.lastName}
               </Text>
 
-              <Text style={styles.cardText}>Especie: {item.species}</Text>
+              <Text style={styles.cardText}>Especie: {item.species.name}</Text>
 
               <Text style={styles.cardText}>Teléfono: {item.tutor.phone}</Text>
             </TouchableOpacity>
@@ -239,7 +239,7 @@ export default function SearchPatientScreen() {
                       {patient.firstName} {patient.lastName}
                     </Text>
                     <Text style={styles.patientRowText}>
-                      {patient.species}
+                      {patient.species.name}
                     </Text>
                   </TouchableOpacity>
                 ))

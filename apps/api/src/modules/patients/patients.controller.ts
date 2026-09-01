@@ -16,8 +16,42 @@ export async function createPatient(req: Request, res: Response) {
     })
   }
 
+  const speciesExists = await prisma.species.findUnique({
+    where: { id: data.speciesId },
+  })
+
+  if (!speciesExists) {
+    return res.status(404).json({
+      ok: false,
+      message: "Species not found",
+    })
+  }
+
+  const breed = await prisma.breed.findUnique({
+    where: { id: data.breedId },
+  })
+
+  if (!breed) {
+    return res.status(404).json({
+      ok: false,
+      message: "Breed not found",
+    })
+  }
+
+  if (breed.speciesId !== data.speciesId) {
+    return res.status(400).json({
+      ok: false,
+      message: "Breed does not match patient species",
+      field: "breedId",
+    })
+  }
+
   const patient = await prisma.patient.create({
     data,
+    include: {
+      species: true,
+      breed: true,
+    },
   })
 
   return res.status(201).json({
@@ -30,6 +64,8 @@ export async function getPatients(_req: Request, res: Response) {
   const patients = await prisma.patient.findMany({
     include: {
       tutor: true,
+      species: true,
+      breed: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -71,6 +107,8 @@ export async function searchPatients(req: Request, res: Response) {
     },
     include: {
       tutor: true,
+      species: true,
+      breed: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -90,6 +128,8 @@ export async function getPatientById(req: Request, res: Response) {
     where: { id },
     include: {
       tutor: true,
+      species: true,
+      breed: true,
       consultations: {
         include: {
           homeTreatment: true,

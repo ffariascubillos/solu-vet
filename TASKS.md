@@ -17,6 +17,7 @@ Agreed priority order: Tutor/Patient update and delete first, then basic authent
 - [ ] Add patient delete endpoint.
 - [ ] Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
 - [ ] Normalize validation error responses.
+- [ ] Add an admin-only CRUD maintainer for species and breeds (create, search, update, delete). Depends on basic authentication with roles, since there is no way to restrict anything to administrators yet.
 
 ### Testing
 - None.
@@ -77,6 +78,7 @@ Agreed priority order: Tutor/Patient update and delete first, then basic authent
 - [x] Updated main registration navigation to open Tutor registration first.
 - [x] Verified Tutor registration and Patient-only registration with mobile TypeScript and lint.
 - [x] Moved mobile API base URL out of hardcoded LAN IP into `EXPO_PUBLIC_API_URL` (`apps/mobile/.env`, with `apps/mobile/.env.example` as template).
+- [x] Converted `Patient.species` and `Patient.breed` from free text to `Species`/`Breed` reference tables, seeded with an initial Perro/Gato catalog, with read-only `GET /api/species` and `GET /api/breeds?speciesId=...` endpoints and mobile pickers replacing the free-text inputs.
 
 ## Rules
 

@@ -2,7 +2,7 @@
 
 ## Project Status
 
-Last audited: 2026-06-24.
+Last audited: 2026-09-01.
 
 ## Current Reality
 
@@ -64,6 +64,14 @@ The latest local checks passed:
 - Updated the empty search registration action to open Tutor registration.
 - Verified the mobile TypeScript check and mobile lint after separating the flow.
 - Manually validated the separated Tutor registration and Patient-from-Tutor flow.
+- Replaced `Patient.species` (free text) and `Patient.breed` (free text) with `Species` and `Breed` reference tables and required foreign keys (`Patient.speciesId`, `Patient.breedId`).
+- Seeded an initial `Species`/`Breed` catalog (Perro, Gato, and a handful of common breeds per species, including a "Mestizo / Sin raza definida" fallback per species) via a new Prisma seed script.
+- Added read-only `GET /api/species` and `GET /api/breeds?speciesId=...` endpoints.
+- Added explicit `Species`/`Breed` existence and species-match validation in `createPatient` (404 for missing species/breed, 400 when a breed doesn't belong to the selected species).
+- Replaced the mobile Patient registration form's free-text "Especie"/"Raza" inputs with dependent selects (species loads on mount, breed reloads when species changes) using a new reusable `SelectField` component built on `react-native-paper`'s `Menu`.
+- Updated Patient detail, Tutor detail, and Patient search screens to render `species.name`/`breed.name` instead of raw free text.
+- Added API integration tests for species/breed existence, species-mismatch, and the new `/api/species` and `/api/breeds` endpoints.
+- Fixed a crash found during manual phone testing: `searchTutors` and `getTutorById` in `tutors.controller.ts` returned nested `patients` without `species`/`breed` included, so the mobile Tutor detail screen and Tutor search (nested Patient rows) threw `Cannot read property 'name' of undefined`.
 
 ## Problems Resolved
 
@@ -77,6 +85,7 @@ The latest local checks passed:
 - Tutor detail now refreshes when returning from Patient registration, so newly added Patients appear immediately.
 - Adding a Patient from Tutor detail now reliably opens the Patient step with the Tutor preselected.
 - The mobile API client no longer hardcodes a LAN IP in source; it reads `EXPO_PUBLIC_API_URL` from `apps/mobile/.env`, so switching networks or devices no longer requires editing code.
+- Tutor detail and Tutor search now include `species`/`breed` on each nested Patient (`prisma.tutor.findUnique`/`findMany` in `tutors.controller.ts`), matching what the Patient endpoints already did — fixes the mobile crash reading `patient.species.name` when `species` came back `undefined`.
 
 ## Technical Decisions
 
@@ -98,6 +107,10 @@ The latest local checks passed:
 - Tutor search returns Tutors with their related Patients for quick access to existing pets.
 - Tutor detail is now the completion surface after creating a Tutor.
 - Adding a Patient from Tutor detail reuses the Patient registration screen with the Tutor preselected.
+- `species` and `breed` are reference tables (`Species`, `Breed`), not a Prisma enum, because a future admin-only maintainer should be able to add new species/breeds without a database migration or app release — an enum would require both for every new value, a table only requires a row insert.
+- `Patient.speciesId` and `Patient.breedId` are both required (not optional): every patient must have a species and a breed. The seed catalog includes a "Mestizo / Sin raza definida" breed per species so "I don't know the exact breed" is always a valid choice without leaving the field empty.
+- The species/breed CRUD maintainer for administrators is deferred until basic authentication with roles exists — today `Species`/`Breed` are read-only via the API.
+- No mapping from English to Spanish is needed for `species`/`breed` in the UI, unlike `sex`/`reproductiveStatus`: `Species.name`/`Breed.name` are catalog data stored and shown directly in Spanish, not fixed code-level enum values.
 
 ## Current CRUD State
 
@@ -121,12 +134,24 @@ Implemented:
 - Create Patient: `POST /api/patients`.
 - List Patients: `GET /api/patients`.
 - Search Patients: `GET /api/patients/search?q=...` by Patient fields.
-- Get Patient detail: `GET /api/patients/:id`, including Tutor and Consultations.
+- Get Patient detail: `GET /api/patients/:id`, including Tutor, Species, Breed, and Consultations.
 - Create Patient validates that `tutorId` exists before insertion.
+- Create Patient validates that `speciesId` exists, `breedId` exists, and the breed belongs to the selected species before insertion.
+- All Patient read endpoints (`GET /api/patients`, `GET /api/patients/search`, `GET /api/patients/:id`) include the related `Species` and `Breed` records.
 
 Not implemented:
 - Update Patient.
 - Delete Patient.
+
+### Species / Breeds
+
+Implemented:
+- List Species: `GET /api/species`, read-only, ordered by name.
+- List Breeds: `GET /api/breeds?speciesId=...`, read-only; `speciesId` is optional (omitted returns all breeds, ordered by species then name).
+- Seeded catalog: Perro and Gato, with a small starter breed list per species including a "Mestizo / Sin raza definida" fallback.
+
+Not implemented:
+- Create/update/delete Species or Breed (deferred admin-only maintainer, depends on basic authentication with roles).
 
 ## Implemented Backend Foundation
 
@@ -143,6 +168,8 @@ Prisma models exist for:
 - User
 - Tutor
 - Patient
+- Species
+- Breed
 - Consultation
 - HomeTreatment
 - FollowUp
@@ -192,6 +219,9 @@ Prisma models exist for:
 - Duplicate Tutor email response was verified against the local API and database.
 - Manual API smoke test passed: Tutor create `201`, duplicate Tutor RUT `409`, duplicate Tutor email `409`, Patient create with valid `tutorId` `201`, Patient create with missing `tutorId` `404`, Patient search works, and Patient detail works.
 - Moved the mobile API base URL out of a hardcoded LAN IP into `EXPO_PUBLIC_API_URL`, read from `apps/mobile/.env` (not versioned; `apps/mobile/.env.example` documents the expected format for LAN, Android emulator, and web/localhost). `apps/mobile/src/services/api.ts` now throws a clear error at startup if the variable is missing instead of silently pointing at the wrong network.
+- API TypeScript check, API integration tests (21 tests, including the new Species/Breed coverage), mobile TypeScript check, and mobile lint all passed after converting `Patient.species`/`Patient.breed` to the `Species`/`Breed` reference tables.
+- The `Patient` table (local dev and `solu_vet_test`) was truncated before applying the migration, since the existing free-text `species` values could not be cast to the new required foreign keys; there was no production data at risk.
+- Live phone testing with Expo Go against the local API confirmed the full Species/Breed flow end to end: Patient registration with the new species/breed selects, Patient detail, Tutor detail with related Patients, and Patient/Tutor search — including the `tutors.controller.ts` include fix, verified after a crash was found and fixed during this same testing session.
 
 ## Risks Pending
 
@@ -202,9 +232,10 @@ Prisma models exist for:
 
 ## Recommended Next Steps
 
-Agreed priority order: (1) Tutor/Patient update and delete endpoints, (2) basic authentication, since neither exists yet and both are prerequisites for a usable (non-demo) system.
+Agreed priority order: (1) Tutor/Patient update and delete endpoints, (2) basic authentication, since neither exists yet and both are prerequisites for a usable (non-demo) system. The Species/Breed data model change (this session) was done ahead of this order because it was a blocking data-quality fix for the Patient registration form.
 
 1. Implement Tutor update/delete.
 2. Implement Patient update/delete.
 3. Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
-4. Improve Patient detail layout for phones and tablets.
+4. Add the admin-only Species/Breed CRUD maintainer (depends on step 3).
+5. Improve Patient detail layout for phones and tablets.

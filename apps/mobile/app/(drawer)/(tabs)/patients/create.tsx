@@ -98,8 +98,8 @@ export default function CreatePatientScreen() {
       lastName: tutor.lastName,
       sex: patientForm.sex,
       age,
-      species: patientForm.species.trim(),
-      breed: patientForm.breed.trim() || undefined,
+      speciesId: patientForm.speciesId,
+      breedId: patientForm.breedId,
       reproductiveStatus: patientForm.reproductiveStatus,
       tutorId: tutor.id,
     };

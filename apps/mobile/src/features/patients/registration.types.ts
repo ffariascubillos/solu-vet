@@ -13,8 +13,8 @@ export type PatientForm = {
   firstName: string;
   sex: CreatePatientInput['sex'];
   age: string;
-  species: string;
-  breed: string;
+  speciesId: string;
+  breedId: string;
   reproductiveStatus: CreatePatientInput['reproductiveStatus'];
 };
 
@@ -33,7 +33,7 @@ export const initialPatientForm: PatientForm = {
   firstName: '',
   sex: 'FEMALE',
   age: '',
-  species: '',
-  breed: '',
+  speciesId: '',
+  breedId: '',
   reproductiveStatus: 'NOT_STERILIZED',
 };

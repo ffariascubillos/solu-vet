@@ -42,3 +42,4 @@ npm run lint -w apps/mobile
 - `ROADMAP.md`: product phases and planned work.
 - `TASKS.md`: active and next tasks.
 - `DAILY/`: daily work logs.
+- `MANUAL/`: operational how-to guides.

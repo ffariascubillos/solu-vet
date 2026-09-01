@@ -12,3 +12,10 @@ const testDatabaseUrl = new URL(databaseUrl)
 testDatabaseUrl.pathname = "/solu_vet_test"
 
 process.env.DATABASE_URL = testDatabaseUrl.toString()
+
+const { prisma } = await import("../lib/prisma.js")
+const { seedCatalog } = await import(
+  "../modules/species/species-catalog.seed-data.js"
+)
+
+await seedCatalog(prisma)

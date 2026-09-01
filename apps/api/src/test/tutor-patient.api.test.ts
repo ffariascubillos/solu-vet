@@ -17,8 +17,8 @@ type PatientPayload = {
   lastName?: string
   sex: "MALE" | "FEMALE"
   age?: number
-  species: string
-  breed?: string
+  speciesId: string
+  breedId: string
   reproductiveStatus: "STERILIZED" | "NOT_STERILIZED"
   tutorId: string
 }
@@ -35,20 +35,29 @@ const createTutorPayload = (
   ...overrides,
 })
 
-const createPatientPayload = (
+const createPatientPayload = async (
   tutorId: string,
   overrides: Partial<PatientPayload> = {},
-): PatientPayload => ({
-  firstName: "Luna",
-  lastName: "Perez",
-  sex: "FEMALE",
-  age: 4,
-  species: "Canino",
-  breed: "Mestizo",
-  reproductiveStatus: "STERILIZED",
-  tutorId,
-  ...overrides,
-})
+): Promise<PatientPayload> => {
+  const species = await prisma.species.findFirstOrThrow({
+    where: { name: "Perro" },
+  })
+  const breed = await prisma.breed.findFirstOrThrow({
+    where: { speciesId: species.id },
+  })
+
+  return {
+    firstName: "Luna",
+    lastName: "Perez",
+    sex: "FEMALE",
+    age: 4,
+    speciesId: species.id,
+    breedId: breed.id,
+    reproductiveStatus: "STERILIZED",
+    tutorId,
+    ...overrides,
+  }
+}
 
 async function cleanDatabase() {
   await prisma.patient.deleteMany()
@@ -165,7 +174,7 @@ describe("Tutor and Patient API", () => {
 
   it("creates a patient when tutor exists", async () => {
     const tutor = await createTutor()
-    const payload = createPatientPayload(tutor.id)
+    const payload = await createPatientPayload(tutor.id)
 
     const response = await request(app).post("/api/patients").send(payload)
 
@@ -176,8 +185,10 @@ describe("Tutor and Patient API", () => {
       lastName: payload.lastName,
       sex: payload.sex,
       age: payload.age,
-      species: payload.species,
-      breed: payload.breed,
+      speciesId: payload.speciesId,
+      breedId: payload.breedId,
+      species: { id: payload.speciesId },
+      breed: { id: payload.breedId },
       reproductiveStatus: payload.reproductiveStatus,
       tutorId: tutor.id,
     })
@@ -187,7 +198,7 @@ describe("Tutor and Patient API", () => {
   it("returns 404 when creating a patient with a missing tutor", async () => {
     const response = await request(app)
       .post("/api/patients")
-      .send(createPatientPayload("missing-tutor-id"))
+      .send(await createPatientPayload("missing-tutor-id"))
 
     expect(response.status).toBe(404)
     expect(response.body).toMatchObject({
@@ -196,15 +207,81 @@ describe("Tutor and Patient API", () => {
     })
   })
 
+  it("returns 404 when patient species does not exist", async () => {
+    const tutor = await createTutor()
+    const payload = await createPatientPayload(tutor.id, {
+      speciesId: "missing-species-id",
+    })
+
+    const response = await request(app).post("/api/patients").send(payload)
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Species not found",
+    })
+  })
+
+  it("returns 404 when patient breed does not exist", async () => {
+    const tutor = await createTutor()
+    const payload = await createPatientPayload(tutor.id, {
+      breedId: "missing-breed-id",
+    })
+
+    const response = await request(app).post("/api/patients").send(payload)
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Breed not found",
+    })
+  })
+
+  it("returns 400 when patient breed does not match species", async () => {
+    const tutor = await createTutor()
+    const cat = await prisma.species.findFirstOrThrow({
+      where: { name: "Gato" },
+    })
+    const dogBreed = await prisma.breed.findFirstOrThrow({
+      where: { species: { name: "Perro" } },
+    })
+    const payload = await createPatientPayload(tutor.id, {
+      speciesId: cat.id,
+      breedId: dogBreed.id,
+    })
+
+    const response = await request(app).post("/api/patients").send(payload)
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      ok: false,
+      field: "breedId",
+      message: "Breed does not match patient species",
+    })
+  })
+
+  it("returns 400 when creating a patient without species or breed", async () => {
+    const tutor = await createTutor()
+    const payload = await createPatientPayload(tutor.id)
+    const { speciesId, breedId, ...payloadWithoutSpeciesAndBreed } = payload
+
+    const response = await request(app)
+      .post("/api/patients")
+      .send(payloadWithoutSpeciesAndBreed)
+
+    expect(response.status).toBe(400)
+    expect(response.body.ok).toBe(false)
+  })
+
   it("creates multiple patients for the same tutor", async () => {
     const tutor = await createTutor()
 
     const firstPatientResponse = await request(app)
       .post("/api/patients")
-      .send(createPatientPayload(tutor.id, { firstName: "Luna" }))
+      .send(await createPatientPayload(tutor.id, { firstName: "Luna" }))
     const secondPatientResponse = await request(app)
       .post("/api/patients")
-      .send(createPatientPayload(tutor.id, { firstName: "Mora" }))
+      .send(await createPatientPayload(tutor.id, { firstName: "Mora" }))
 
     expect(firstPatientResponse.status).toBe(201)
     expect(secondPatientResponse.status).toBe(201)
@@ -223,7 +300,7 @@ describe("Tutor and Patient API", () => {
     await request(app)
       .post("/api/patients")
       .send(
-        createPatientPayload(tutor.id, {
+        await createPatientPayload(tutor.id, {
           firstName: "Mora",
           lastName: "Campos",
         }),
@@ -263,10 +340,10 @@ describe("Tutor and Patient API", () => {
 
     await request(app)
       .post("/api/patients")
-      .send(createPatientPayload(tutor.id, { firstName: "Mora" }))
+      .send(await createPatientPayload(tutor.id, { firstName: "Mora" }))
     await request(app)
       .post("/api/patients")
-      .send(createPatientPayload(tutor.id, { firstName: "Nala" }))
+      .send(await createPatientPayload(tutor.id, { firstName: "Nala" }))
 
     const tutorNameResponse = await request(app)
       .get("/api/tutors/search")
@@ -302,10 +379,10 @@ describe("Tutor and Patient API", () => {
 
     await request(app)
       .post("/api/patients")
-      .send(createPatientPayload(tutor.id, { firstName: "Mora" }))
+      .send(await createPatientPayload(tutor.id, { firstName: "Mora" }))
     await request(app)
       .post("/api/patients")
-      .send(createPatientPayload(tutor.id, { firstName: "Nala" }))
+      .send(await createPatientPayload(tutor.id, { firstName: "Nala" }))
 
     const response = await request(app).get(`/api/tutors/${tutor.id}`)
 
@@ -361,7 +438,7 @@ describe("Tutor and Patient API", () => {
     })
     const createPatientResponse = await request(app)
       .post("/api/patients")
-      .send(createPatientPayload(tutor.id, { firstName: "Nala" }))
+      .send(await createPatientPayload(tutor.id, { firstName: "Nala" }))
     const patientId = createPatientResponse.body.data.id as string
 
     const response = await request(app).get(`/api/patients/${patientId}`)
@@ -376,5 +453,39 @@ describe("Tutor and Patient API", () => {
       },
     })
     expect(response.body.data.consultations).toEqual([])
+  })
+
+  it("gets the seeded species catalog", async () => {
+    const response = await request(app).get("/api/species")
+
+    expect(response.status).toBe(200)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "Perro" }),
+        expect.objectContaining({ name: "Gato" }),
+      ]),
+    )
+  })
+
+  it("filters breeds by speciesId", async () => {
+    const dog = await prisma.species.findFirstOrThrow({
+      where: { name: "Perro" },
+    })
+    const cat = await prisma.species.findFirstOrThrow({
+      where: { name: "Gato" },
+    })
+
+    const response = await request(app)
+      .get("/api/breeds")
+      .query({ speciesId: dog.id })
+
+    expect(response.status).toBe(200)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data.length).toBeGreaterThan(0)
+    for (const breed of response.body.data) {
+      expect(breed.speciesId).toBe(dog.id)
+      expect(breed.speciesId).not.toBe(cat.id)
+    }
   })
 })

@@ -84,10 +84,8 @@ export default function PatientDetailScreen() {
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Datos del paciente</Text>
-        <Text style={styles.text}>Especie: {patient.species}</Text>
-        <Text style={styles.text}>
-          Raza: {patient.breed || "No registrada"}
-        </Text>
+        <Text style={styles.text}>Especie: {patient.species.name}</Text>
+        <Text style={styles.text}>Raza: {patient.breed.name}</Text>
         <Text style={styles.text}>Edad: {patient.age ?? "No registrada"}</Text>
         <Text style={styles.text}>Sexo: {sexLabels[patient.sex]}</Text>
         <Text style={styles.text}>

@@ -147,10 +147,10 @@ export default function TutorDetailScreen() {
               <Text style={styles.patientName}>
                 {patient.firstName} {patient.lastName}
               </Text>
-              <Text style={styles.patientText}>Especie: {patient.species}</Text>
               <Text style={styles.patientText}>
-                Raza: {patient.breed || 'No registrada'}
+                Especie: {patient.species.name}
               </Text>
+              <Text style={styles.patientText}>Raza: {patient.breed.name}</Text>
             </TouchableOpacity>
           ))
         )}

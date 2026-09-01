@@ -24,14 +24,27 @@ export type Consultation = {
   consultationDate: string;
 };
 
+export type Species = {
+  id: string;
+  name: string;
+};
+
+export type Breed = {
+  id: string;
+  name: string;
+  speciesId: string;
+};
+
 export type Patient = {
   id: string;
   firstName: string;
   lastName?: string | null;
   sex: "MALE" | "FEMALE";
   age?: number | null;
-  species: string;
-  breed?: string | null;
+  speciesId: string;
+  species: Species;
+  breedId: string;
+  breed: Breed;
   reproductiveStatus: "STERILIZED" | "NOT_STERILIZED";
   tutor: Tutor;
   consultations?: Consultation[];
@@ -42,8 +55,8 @@ export type CreatePatientInput = {
   lastName?: string;
   sex: "MALE" | "FEMALE";
   age?: number;
-  species: string;
-  breed?: string;
+  speciesId: string;
+  breedId: string;
   reproductiveStatus: "STERILIZED" | "NOT_STERILIZED";
   tutorId: string;
 };

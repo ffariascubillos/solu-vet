@@ -73,14 +73,9 @@ export function validateTutorForm(tutorForm: TutorForm) {
 
 export function validatePatientForm(patientForm: PatientForm) {
   const patientFirstName = patientForm.firstName.trim();
-  const patientSpecies = patientForm.species.trim();
 
-  if (!patientFirstName || !patientSpecies) {
+  if (!patientFirstName || !patientForm.speciesId || !patientForm.breedId) {
     return 'Completa los datos obligatorios del paciente.';
-  }
-
-  if (patientSpecies.length < 2) {
-    return 'La especie del paciente debe tener al menos 2 caracteres.';
   }
 
   if (patientForm.age.trim()) {
