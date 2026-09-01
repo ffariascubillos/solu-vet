@@ -1,3 +1,3 @@
-import { upload } from "../config/multer.js";
+import { upload } from '../config/multer.js'
 
-export const uploadSingleAttachment = upload.single("file");
+export const uploadSingleAttachment = upload.single('file')

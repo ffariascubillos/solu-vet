@@ -1,11 +1,14 @@
 import { create } from 'axios';
 
-// Ipv4 Leslita
-// const ipv4 = '192.168.1.86';
-// Ipv4 Casa
-const ipv4 = '192.168.1.81';
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+if (!apiUrl) {
+  throw new Error(
+    'EXPO_PUBLIC_API_URL no está definida. Copia apps/mobile/.env.example a apps/mobile/.env y configura la URL de tu backend.'
+  );
+}
 
 export const api = create({
-  baseURL: `http://${ipv4}:3001/api`,
+  baseURL: apiUrl,
   timeout: 10000,
 });

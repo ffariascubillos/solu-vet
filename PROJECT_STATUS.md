@@ -76,6 +76,7 @@ The latest local checks passed:
 - Mobile screens touched by the MVP flow no longer assume that every consultation happens at the patient's home.
 - Tutor detail now refreshes when returning from Patient registration, so newly added Patients appear immediately.
 - Adding a Patient from Tutor detail now reliably opens the Patient step with the Tutor preselected.
+- The mobile API client no longer hardcodes a LAN IP in source; it reads `EXPO_PUBLIC_API_URL` from `apps/mobile/.env`, so switching networks or devices no longer requires editing code.
 
 ## Technical Decisions
 
@@ -190,10 +191,10 @@ Prisma models exist for:
 - Duplicate Tutor RUT response was verified against the local API and database.
 - Duplicate Tutor email response was verified against the local API and database.
 - Manual API smoke test passed: Tutor create `201`, duplicate Tutor RUT `409`, duplicate Tutor email `409`, Patient create with valid `tutorId` `201`, Patient create with missing `tutorId` `404`, Patient search works, and Patient detail works.
+- Moved the mobile API base URL out of a hardcoded LAN IP into `EXPO_PUBLIC_API_URL`, read from `apps/mobile/.env` (not versioned; `apps/mobile/.env.example` documents the expected format for LAN, Android emulator, and web/localhost). `apps/mobile/src/services/api.ts` now throws a clear error at startup if the variable is missing instead of silently pointing at the wrong network.
 
 ## Risks Pending
 
-- `apps/mobile/src/services/api.ts` still hardcodes a local LAN IP address.
 - Automated API test coverage is initial and focused on the Tutor and Patient MVP smoke flow.
 - There is no authentication or user account flow.
 - Validation error responses are still not fully normalized beyond the duplicate Tutor cases.
@@ -201,7 +202,9 @@ Prisma models exist for:
 
 ## Recommended Next Steps
 
-1. Move the mobile API base URL out of hardcoded LAN IP configuration.
-2. Improve Patient detail layout for phones and tablets.
-3. Implement Tutor update/delete only when needed by the MVP workflow.
-4. Implement Patient update/delete when the MVP requires record correction workflows.
+Agreed priority order: (1) Tutor/Patient update and delete endpoints, (2) basic authentication, since neither exists yet and both are prerequisites for a usable (non-demo) system.
+
+1. Implement Tutor update/delete.
+2. Implement Patient update/delete.
+3. Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
+4. Improve Patient detail layout for phones and tablets.

@@ -8,13 +8,14 @@
 
 ### Mobile
 - [ ] Improve patient detail layout for phones and tablets.
-- [ ] Move API base URL out of hardcoded LAN IP configuration.
 
 ### Backend
+Agreed priority order: Tutor/Patient update and delete first, then basic authentication — neither exists yet and both are prerequisites for a usable (non-demo) system.
 - [ ] Add tutor update endpoint.
 - [ ] Add tutor delete endpoint.
 - [ ] Add patient update endpoint.
 - [ ] Add patient delete endpoint.
+- [ ] Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
 - [ ] Normalize validation error responses.
 
 ### Testing
@@ -75,6 +76,7 @@
 - [x] Simplified Patient registration so it only creates Patients for a selected Tutor.
 - [x] Updated main registration navigation to open Tutor registration first.
 - [x] Verified Tutor registration and Patient-only registration with mobile TypeScript and lint.
+- [x] Moved mobile API base URL out of hardcoded LAN IP into `EXPO_PUBLIC_API_URL` (`apps/mobile/.env`, with `apps/mobile/.env.example` as template).
 
 ## Rules
 
