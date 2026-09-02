@@ -118,7 +118,18 @@ export default function TutorDetailScreen() {
       </Text>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Datos del tutor</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Datos del tutor</Text>
+          <Button
+            mode="outlined"
+            onPress={() =>
+              router.push(`/tutors/edit?id=${tutor.id}` as Href)
+            }
+            icon="pencil"
+            compact>
+            Editar
+          </Button>
+        </View>
         <Text style={styles.text}>RUT: {tutor.rut}</Text>
         <Text style={styles.text}>Teléfono: {tutor.phone}</Text>
         <Text style={styles.text}>
@@ -209,8 +220,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#c7c7c7',
+    backgroundColor: '#1E293B',
+    borderColor: '#334155',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 18,
@@ -223,18 +234,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   sectionTitle: {
-    color: '#0f172a',
+    color: colors.text,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
   },
   countText: {
-    color: '#475569',
+    color: colors.muted,
     fontSize: 15,
     fontWeight: '700',
   },
   text: {
-    color: '#475569',
+    color: colors.muted,
     fontSize: 15,
     marginBottom: 6,
   },
@@ -250,21 +261,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   patientRow: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#e2e8f0',
+    backgroundColor: '#0F172A',
+    borderColor: '#334155',
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 10,
     padding: 12,
   },
   patientName: {
-    color: '#0f172a',
+    color: colors.text,
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 4,
   },
   patientText: {
-    color: '#475569',
+    color: colors.muted,
     fontSize: 14,
     marginBottom: 2,
   },

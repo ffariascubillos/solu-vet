@@ -4,8 +4,9 @@ import {
   formatTutorAddress,
 } from "@/src/features/patients/tutor-address";
 import { Patient } from "@/src/types/patient";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { router, useLocalSearchParams, type Href } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -15,6 +16,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from "react-native";
+import { Button } from "react-native-paper";
 
 const sexLabels: Record<Patient["sex"], string> = {
   FEMALE: "Hembra",
@@ -33,26 +35,42 @@ export default function PatientDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function loadingPatient() {
-      try {
-        setLoading(true);
-        setError("");
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-        const data = await getPatientById(String(id));
+      async function loadingPatient() {
+        if (!id) {
+          return;
+        }
 
-        setPatient(data);
-      } catch {
-        setError("No se pudo cargar la ficha del paciente.");
-      } finally {
-        setLoading(false);
+        try {
+          setLoading(true);
+          setError("");
+
+          const data = await getPatientById(String(id));
+
+          if (isActive) {
+            setPatient(data);
+          }
+        } catch {
+          if (isActive) {
+            setError("No se pudo cargar la ficha del paciente.");
+          }
+        } finally {
+          if (isActive) {
+            setLoading(false);
+          }
+        }
       }
-    }
 
-    if (id) {
       loadingPatient();
-    }
-  }, [id]);
+
+      return () => {
+        isActive = false;
+      };
+    }, [id]),
+  );
 
   function openMaps() {
     if (!patient?.tutor) return;
@@ -84,7 +102,18 @@ export default function PatientDetailScreen() {
       </Text>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Datos del paciente</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Datos del paciente</Text>
+          <Button
+            mode="outlined"
+            onPress={() =>
+              router.push(`/patients/edit?id=${patient.id}` as Href)
+            }
+            icon="pencil"
+            compact>
+            Editar
+          </Button>
+        </View>
         <Text style={styles.text}>Especie: {patient.species.name}</Text>
         <Text style={styles.text}>Raza: {patient.breed.name}</Text>
         <Text style={styles.text}>Edad: {patient.age ?? "No registrada"}</Text>
@@ -181,22 +210,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#1E293B",
     borderRadius: 14,
     padding: 16,
     borderWidth: 1,
-    borderColor: "#c7c7c7",
+    borderColor: "#334155",
     marginBottom: 18,
+  },
+  sectionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0f172a",
+    color: colors.text,
     marginBottom: 10,
   },
   text: {
     fontSize: 15,
-    color: "#475569",
+    color: colors.muted,
     marginBottom: 6,
   },
   mapButton: {
@@ -212,14 +247,14 @@ const styles = StyleSheet.create({
   },
   consultationItem: {
     borderTopWidth: 1,
-    borderTopColor: "#e2e8f0",
+    borderTopColor: "#334155",
     paddingTop: 12,
     marginTop: 12,
   },
   consultationTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#0f172a",
+    color: colors.text,
     marginBottom: 6,
   },
 });
