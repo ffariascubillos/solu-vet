@@ -2,7 +2,9 @@ export type Tutor = {
   id: string;
   firstName: string;
   lastName: string;
-  address: string;
+  region: string;
+  comuna: string;
+  streetAddress: string;
   email?: string | null;
   phone: string;
   rut: string;
@@ -11,10 +13,17 @@ export type Tutor = {
 export type CreateTutorInput = {
   firstName: string;
   lastName: string;
-  address: string;
+  region: string;
+  comuna: string;
+  streetAddress: string;
   email?: string;
   phone: string;
   rut: string;
+};
+
+export type Region = {
+  name: string;
+  comunas: string[];
 };
 
 export type Consultation = {

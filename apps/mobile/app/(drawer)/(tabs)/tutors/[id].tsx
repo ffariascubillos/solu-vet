@@ -1,4 +1,8 @@
 import { getTutorById } from '@/src/features/patients/patients.service';
+import {
+  buildTutorMapsUrl,
+  formatTutorAddress,
+} from '@/src/features/patients/tutor-address';
 import type { TutorWithPatients } from '@/src/types/patient';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
@@ -68,14 +72,11 @@ export default function TutorDetailScreen() {
   }
 
   function openMaps() {
-    if (!tutor?.address) {
+    if (!tutor) {
       return;
     }
 
-    const encodedAddress = encodeURIComponent(tutor.address);
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-
-    Linking.openURL(url);
+    Linking.openURL(buildTutorMapsUrl(tutor));
   }
 
   function openPatient(patientId: string) {
@@ -123,7 +124,7 @@ export default function TutorDetailScreen() {
         <Text style={styles.text}>
           Correo: {tutor.email || 'No registrado'}
         </Text>
-        <Text style={styles.text}>Dirección: {tutor.address}</Text>
+        <Text style={styles.text}>Dirección: {formatTutorAddress(tutor)}</Text>
 
         <TouchableOpacity style={styles.mapButton} onPress={openMaps}>
           <Text style={styles.mapButtonText}>Ver dirección en Maps</Text>

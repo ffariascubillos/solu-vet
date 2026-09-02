@@ -1,4 +1,8 @@
 import { getPatientById } from "@/src/features/patients/patients.service";
+import {
+  buildTutorMapsUrl,
+  formatTutorAddress,
+} from "@/src/features/patients/tutor-address";
 import { Patient } from "@/src/types/patient";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
@@ -51,12 +55,9 @@ export default function PatientDetailScreen() {
   }, [id]);
 
   function openMaps() {
-    if (!patient?.tutor.address) return;
+    if (!patient?.tutor) return;
 
-    const encodedAddress = encodeURIComponent(patient.tutor.address);
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-
-    Linking.openURL(url);
+    Linking.openURL(buildTutorMapsUrl(patient.tutor));
   }
 
   if (loading) {
@@ -99,7 +100,9 @@ export default function PatientDetailScreen() {
         <Text style={styles.text}>
           Nombre: {patient.tutor.firstName} {patient.tutor.lastName}
         </Text>
-        <Text style={styles.text}>Dirección: {patient.tutor.address}</Text>
+        <Text style={styles.text}>
+          Dirección: {formatTutorAddress(patient.tutor)}
+        </Text>
         <Text style={styles.text}>Teléfono: {patient.tutor.phone}</Text>
         <Text style={styles.text}>
           Correo: {patient.tutor.email || "No registrado"}

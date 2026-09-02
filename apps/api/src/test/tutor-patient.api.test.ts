@@ -6,7 +6,9 @@ import { prisma } from "../lib/prisma.js"
 type TutorPayload = {
   firstName: string
   lastName: string
-  address: string
+  region: string
+  comuna: string
+  streetAddress: string
   email?: string
   phone: string
   rut: string
@@ -28,7 +30,9 @@ const createTutorPayload = (
 ): TutorPayload => ({
   firstName: "Ana",
   lastName: "Perez",
-  address: "Av. Siempre Viva 123",
+  region: "Metropolitana de Santiago",
+  comuna: "Providencia",
+  streetAddress: "Av. Siempre Viva 123",
   email: "ana.perez@example.com",
   phone: "+56912345678",
   rut: "12345678-5",
@@ -92,12 +96,56 @@ describe("Tutor and Patient API", () => {
     expect(response.body.data).toMatchObject({
       firstName: payload.firstName,
       lastName: payload.lastName,
-      address: payload.address,
+      region: payload.region,
+      comuna: payload.comuna,
+      streetAddress: payload.streetAddress,
       email: payload.email,
       phone: payload.phone,
       rut: payload.rut,
     })
     expect(response.body.data.id).toEqual(expect.any(String))
+  })
+
+  it("returns 400 when tutor comuna does not belong to the selected region", async () => {
+    const response = await request(app)
+      .post("/api/tutors")
+      .send(
+        createTutorPayload({
+          region: "Metropolitana de Santiago",
+          comuna: "Valparaíso",
+        }),
+      )
+
+    expect(response.status).toBe(400)
+    expect(response.body.ok).toBe(false)
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: ["comuna"],
+        }),
+      ]),
+    )
+  })
+
+  it("returns 400 when tutor region does not exist", async () => {
+    const response = await request(app)
+      .post("/api/tutors")
+      .send(
+        createTutorPayload({
+          region: "Región Inventada",
+          comuna: "Providencia",
+        }),
+      )
+
+    expect(response.status).toBe(400)
+    expect(response.body.ok).toBe(false)
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: ["comuna"],
+        }),
+      ]),
+    )
   })
 
   it("normalizes tutor rut before creating a tutor", async () => {
@@ -487,5 +535,21 @@ describe("Tutor and Patient API", () => {
       expect(breed.speciesId).toBe(dog.id)
       expect(breed.speciesId).not.toBe(cat.id)
     }
+  })
+
+  it("gets the region and comuna catalog", async () => {
+    const response = await request(app).get("/api/regions")
+
+    expect(response.status).toBe(200)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data.length).toBe(16)
+    expect(response.body.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "Metropolitana de Santiago",
+          comunas: expect.arrayContaining(["Providencia"]),
+        }),
+      ]),
+    )
   })
 })

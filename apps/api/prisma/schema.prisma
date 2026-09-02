@@ -32,16 +32,18 @@ model User {
 }
 
 model Tutor {
-  id          String     @id @default(cuid())
-  firstName   String
-  lastName    String
-  address     String
-  email       String?    @unique
-  phone       String
-  rut         String     @unique
-  patients    Patient[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            String     @id @default(cuid())
+  firstName     String
+  lastName      String
+  region        String
+  comuna        String
+  streetAddress String
+  email         String?    @unique
+  phone         String
+  rut           String     @unique
+  patients      Patient[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 }
 
 model Species {

@@ -30,6 +30,7 @@
 - Completed: add Tutor search endpoint with related Patients for mobile lookup.
 - Completed: add Tutor detail endpoint with related Patients for mobile flows.
 - Completed: replace free-text `Patient.species`/`Patient.breed` with `Species`/`Breed` reference tables, seeded catalog, and read-only `/api/species` and `/api/breeds` endpoints.
+- Completed: replace free-text `Tutor.address` with `region`/`comuna` selects (static Chile catalog, read-only `/api/regions`) plus a `streetAddress` field, so the Google Maps link always includes comuna, region, and country.
 - Add tutor update endpoint.
 - Add tutor delete endpoint.
 - Add patient update endpoint.
@@ -82,6 +83,7 @@
 
 ## Future Platform Features
 
+- Evaluate Google Places Autocomplete (restricted to Chile) for exact-pin address precision on home visits, as a follow-up to the Region/Comuna structured address. Requires a Google Cloud project, billing, an API key proxied through the backend, and a new mobile dependency — deferred until there is budget/infra for it.
 - Multi-user accounts.
 - Veterinarian profiles.
 - Cloud file storage.

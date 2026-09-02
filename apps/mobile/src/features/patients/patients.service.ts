@@ -6,6 +6,7 @@ import {
   CreatePatientInput,
   CreateTutorInput,
   Patient,
+  Region,
   Species,
   Tutor,
   TutorWithPatients,
@@ -49,6 +50,11 @@ type GetSpeciesResponse = {
 type GetBreedsResponse = {
   ok: boolean;
   data: Breed[];
+};
+
+type GetRegionsResponse = {
+  ok: boolean;
+  data: Region[];
 };
 
 type ApiErrorResponse = {
@@ -111,6 +117,12 @@ export async function getBreeds(speciesId: string) {
   const response = await api.get<GetBreedsResponse>("/breeds", {
     params: { speciesId },
   });
+
+  return response.data.data;
+}
+
+export async function getRegions() {
+  const response = await api.get<GetRegionsResponse>("/regions");
 
   return response.data.data;
 }

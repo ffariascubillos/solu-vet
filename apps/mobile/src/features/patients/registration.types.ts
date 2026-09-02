@@ -3,7 +3,9 @@ import type { CreatePatientInput } from '@/src/types/patient';
 export type TutorForm = {
   firstName: string;
   lastName: string;
-  address: string;
+  region: string;
+  comuna: string;
+  streetAddress: string;
   email: string;
   phone: string;
   rut: string;
@@ -23,7 +25,9 @@ export type TutorFieldErrors = Partial<Record<'rut' | 'email', string>>;
 export const initialTutorForm: TutorForm = {
   firstName: '',
   lastName: '',
-  address: '',
+  region: '',
+  comuna: '',
+  streetAddress: '',
   email: '',
   phone: '',
   rut: '',

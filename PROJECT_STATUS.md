@@ -72,6 +72,12 @@ The latest local checks passed:
 - Updated Patient detail, Tutor detail, and Patient search screens to render `species.name`/`breed.name` instead of raw free text.
 - Added API integration tests for species/breed existence, species-mismatch, and the new `/api/species` and `/api/breeds` endpoints.
 - Fixed a crash found during manual phone testing: `searchTutors` and `getTutorById` in `tutors.controller.ts` returned nested `patients` without `species`/`breed` included, so the mobile Tutor detail screen and Tutor search (nested Patient rows) threw `Cannot read property 'name' of undefined`.
+- Replaced the free-text `Tutor.address` field with required `region`, `comuna`, and `streetAddress` fields, to fix typos and a bug where the Tutor detail/Patient detail "Ver dirección en Maps" link could open Google Maps in the wrong country.
+- Added a static Chile region/comuna catalog (`apps/api/src/data/chile-regions.ts`, 16 regions/346 comunas) sourced from SUBDERE's Código Único Territorial, exposed read-only via a new `GET /api/regions` endpoint.
+- Added `region`/`comuna` cross-field validation to `createTutorSchema` (Zod refine) so a comuna that doesn't belong to the selected region is rejected with a 400.
+- Replaced the mobile Tutor registration form's free-text "Dirección" input with dependent "Región"/"Comuna" selects (same `SelectField` cascade pattern as Species/Breed) plus a "Calle y número" free-text field for `streetAddress`.
+- Added a shared `formatTutorAddress`/`buildTutorMapsUrl` helper (`apps/mobile/src/features/patients/tutor-address.ts`) so Tutor detail and Patient detail build the same Maps query (`streetAddress, comuna, region, Chile`) instead of duplicating the logic.
+- Truncated the local `Tutor`/`Patient` tables (dev and `solu_vet_test`) before applying the migration, since there was no production data and the existing free-text `address` values could not be split into the new required `region`/`comuna`/`streetAddress` fields.
 
 ## Problems Resolved
 
@@ -108,6 +114,9 @@ The latest local checks passed:
 - Tutor detail is now the completion surface after creating a Tutor.
 - Adding a Patient from Tutor detail reuses the Patient registration screen with the Tutor preselected.
 - `species` and `breed` are reference tables (`Species`, `Breed`), not a Prisma enum, because a future admin-only maintainer should be able to add new species/breeds without a database migration or app release — an enum would require both for every new value, a table only requires a row insert.
+- `Tutor.address` (free text) was replaced with required `region`/`comuna`/`streetAddress` fields. Unlike Species/Breed, `region`/`comuna` are a static in-code catalog (`apps/api/src/data/chile-regions.ts`, 16 regions/346 comunas per SUBDERE's Código Único Territorial), not Prisma reference tables — Chile's political-administrative division does not need an admin maintainer the way Species/Breed does. The catalog is exposed read-only via `GET /api/regions` so mobile fetches the same source instead of duplicating it, and `createTutor` validates the comuna belongs to the selected region via a Zod `.refine()` (no DB existence check needed, since it's not a foreign key).
+- The Google Maps link from Tutor address (Tutor detail and Patient detail) now always builds its query as `streetAddress, comuna, region, Chile`, fixing a bug where a free-text address could open Maps in the wrong country. Shared via `formatTutorAddress`/`buildTutorMapsUrl` in `apps/mobile/src/features/patients/tutor-address.ts`, used by both detail screens instead of duplicating the URL-building logic.
+- Google Places Autocomplete (for exact-pin address precision on home visits) was evaluated and deferred: it would require a Google Cloud project, billing, an API key proxied through the backend, and a new mobile dependency. Tracked in `ROADMAP.md` under Future Platform Features.
 - `Patient.speciesId` and `Patient.breedId` are both required (not optional): every patient must have a species and a breed. The seed catalog includes a "Mestizo / Sin raza definida" breed per species so "I don't know the exact breed" is always a valid choice without leaving the field empty.
 - The species/breed CRUD maintainer for administrators is deferred until basic authentication with roles exists — today `Species`/`Breed` are read-only via the API.
 - No mapping from English to Spanish is needed for `species`/`breed` in the UI, unlike `sex`/`reproductiveStatus`: `Species.name`/`Breed.name` are catalog data stored and shown directly in Spanish, not fixed code-level enum values.
@@ -152,6 +161,15 @@ Implemented:
 
 Not implemented:
 - Create/update/delete Species or Breed (deferred admin-only maintainer, depends on basic authentication with roles).
+
+### Regions / Comunas
+
+Implemented:
+- List Regions: `GET /api/regions`, read-only, returns the static Chile catalog (16 regions with their comunas).
+- `Tutor.region`/`Tutor.comuna` are validated against this catalog at creation time (Zod refine, no DB lookup since it's not a foreign key).
+
+Not implemented:
+- N/A — this catalog is static in-code and does not need an admin maintainer.
 
 ## Implemented Backend Foundation
 
@@ -222,6 +240,7 @@ Prisma models exist for:
 - API TypeScript check, API integration tests (21 tests, including the new Species/Breed coverage), mobile TypeScript check, and mobile lint all passed after converting `Patient.species`/`Patient.breed` to the `Species`/`Breed` reference tables.
 - The `Patient` table (local dev and `solu_vet_test`) was truncated before applying the migration, since the existing free-text `species` values could not be cast to the new required foreign keys; there was no production data at risk.
 - Live phone testing with Expo Go against the local API confirmed the full Species/Breed flow end to end: Patient registration with the new species/breed selects, Patient detail, Tutor detail with related Patients, and Patient/Tutor search — including the `tutors.controller.ts` include fix, verified after a crash was found and fixed during this same testing session.
+- API TypeScript check, API integration tests (24 tests, including the new region/comuna validation and `/api/regions` coverage), mobile TypeScript check, and mobile lint all passed after converting `Tutor.address` to `region`/`comuna`/`streetAddress`.
 
 ## Risks Pending
 

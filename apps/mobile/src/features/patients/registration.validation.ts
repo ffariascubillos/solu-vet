@@ -35,13 +35,15 @@ export function validateTutorForm(tutorForm: TutorForm) {
   const normalizedRut = normalizeRut(tutorForm.rut);
   const tutorFirstName = tutorForm.firstName.trim();
   const tutorLastName = tutorForm.lastName.trim();
-  const tutorAddress = tutorForm.address.trim();
+  const tutorStreetAddress = tutorForm.streetAddress.trim();
   const tutorPhone = tutorForm.phone.trim();
 
   if (
     !tutorFirstName ||
     !tutorLastName ||
-    !tutorAddress ||
+    !tutorForm.region ||
+    !tutorForm.comuna ||
+    !tutorStreetAddress ||
     !tutorPhone ||
     !tutorForm.rut.trim()
   ) {
@@ -52,8 +54,8 @@ export function validateTutorForm(tutorForm: TutorForm) {
     return 'El nombre y apellido del tutor deben tener al menos 2 caracteres.';
   }
 
-  if (tutorAddress.length < 5) {
-    return 'La dirección del tutor debe tener al menos 5 caracteres.';
+  if (tutorStreetAddress.length < 5) {
+    return 'La calle y número del tutor deben tener al menos 5 caracteres.';
   }
 
   if (tutorPhone.length < 8) {

@@ -117,3 +117,8 @@ src/generated/
 # Codex / AI artifacts
 # =========================
 .codex/
+
+# =========================
+# Screenshots / manual testing captures
+# =========================
+CAPTURAS/

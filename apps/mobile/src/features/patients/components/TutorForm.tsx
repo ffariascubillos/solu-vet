@@ -1,6 +1,11 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Avatar, Card, HelperText, TextInput } from 'react-native-paper';
 
+import { getRegions } from '../patients.service';
+import { SelectField } from './SelectField';
+
+import type { Region } from '@/src/types/patient';
 import type { TutorFieldErrors, TutorForm as TutorFormState } from '../registration.types';
 
 type TutorFormProps = {
@@ -10,6 +15,35 @@ type TutorFormProps = {
 };
 
 export function TutorForm({ form, fieldErrors, onChangeField }: TutorFormProps) {
+  const [regionOptions, setRegionOptions] = useState<Region[]>([]);
+
+  useEffect(() => {
+    let isActive = true;
+
+    async function loadRegions() {
+      try {
+        const results = await getRegions();
+        if (isActive) setRegionOptions(results);
+      } catch {
+        if (isActive) setRegionOptions([]);
+      }
+    }
+
+    loadRegions();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  const comunaOptions =
+    regionOptions.find((region) => region.name === form.region)?.comunas ?? [];
+
+  function handleRegionChange(value: string) {
+    onChangeField('region', value);
+    onChangeField('comuna', '');
+  }
+
   return (
     <Card style={styles.card} mode="elevated">
       <Card.Title
@@ -33,12 +67,37 @@ export function TutorForm({ form, fieldErrors, onChangeField }: TutorFormProps) 
           value={form.lastName}
           onChangeText={(value) => onChangeField('lastName', value)}
         />
+        <SelectField
+          label="Región"
+          value={form.region}
+          placeholder="Selecciona una región"
+          options={regionOptions.map((region) => ({
+            value: region.name,
+            label: region.name,
+          }))}
+          onSelect={handleRegionChange}
+        />
+
+        <SelectField
+          label="Comuna"
+          value={form.comuna}
+          placeholder={
+            form.region ? 'Selecciona una comuna' : 'Selecciona una región primero'
+          }
+          options={comunaOptions.map((comuna) => ({
+            value: comuna,
+            label: comuna,
+          }))}
+          onSelect={(value) => onChangeField('comuna', value)}
+          disabled={!form.region}
+        />
+
         <TextInput
           style={styles.input}
-          label="Dirección"
+          label="Calle y número"
           mode="outlined"
-          value={form.address}
-          onChangeText={(value) => onChangeField('address', value)}
+          value={form.streetAddress}
+          onChangeText={(value) => onChangeField('streetAddress', value)}
         />
 
         <View>
@@ -71,13 +130,18 @@ export function TutorForm({ form, fieldErrors, onChangeField }: TutorFormProps) 
             style={styles.input}
             label="RUT"
             mode="outlined"
+            placeholder="12345678-9"
             autoCapitalize="characters"
             value={form.rut}
             onChangeText={(value) => onChangeField('rut', value)}
             error={!!fieldErrors.rut}
           />
-          {fieldErrors.rut && (
+          {fieldErrors.rut ? (
             <HelperText type="error">{fieldErrors.rut}</HelperText>
+          ) : (
+            <HelperText type="info" visible>
+              Formato: 12345678-9 (con guión, sin puntos)
+            </HelperText>
           )}
         </View>
       </Card.Content>

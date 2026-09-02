@@ -18,6 +18,7 @@ Agreed priority order: Tutor/Patient update and delete first, then basic authent
 - [ ] Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
 - [ ] Normalize validation error responses.
 - [ ] Add an admin-only CRUD maintainer for species and breeds (create, search, update, delete). Depends on basic authentication with roles, since there is no way to restrict anything to administrators yet.
+- [ ] Evaluate Google Places Autocomplete (restricted to Chile) for exact-pin address precision on home visits. Deferred: requires a Google Cloud project, billing, an API key proxied through the backend, and a new mobile dependency.
 
 ### Testing
 - None.
@@ -79,6 +80,7 @@ Agreed priority order: Tutor/Patient update and delete first, then basic authent
 - [x] Verified Tutor registration and Patient-only registration with mobile TypeScript and lint.
 - [x] Moved mobile API base URL out of hardcoded LAN IP into `EXPO_PUBLIC_API_URL` (`apps/mobile/.env`, with `apps/mobile/.env.example` as template).
 - [x] Converted `Patient.species` and `Patient.breed` from free text to `Species`/`Breed` reference tables, seeded with an initial Perro/Gato catalog, with read-only `GET /api/species` and `GET /api/breeds?speciesId=...` endpoints and mobile pickers replacing the free-text inputs.
+- [x] Converted `Tutor.address` (free text) into `region`/`comuna` selects (static 16-region/346-comuna Chile catalog, read-only `GET /api/regions`) plus a `streetAddress` field, fixing the Google Maps link opening in the wrong country.
 
 ## Rules
 

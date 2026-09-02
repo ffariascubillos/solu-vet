@@ -52,7 +52,9 @@ export default function CreateTutorScreen() {
     return {
       firstName: tutorForm.firstName.trim(),
       lastName: tutorForm.lastName.trim(),
-      address: tutorForm.address.trim(),
+      region: tutorForm.region,
+      comuna: tutorForm.comuna,
+      streetAddress: tutorForm.streetAddress.trim(),
       email: tutorForm.email.trim() || undefined,
       phone: tutorForm.phone.trim(),
       rut: normalizeRut(tutorForm.rut),
@@ -98,7 +100,7 @@ export default function CreateTutorScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardView}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
