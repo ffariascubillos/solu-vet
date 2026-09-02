@@ -60,6 +60,74 @@ export async function createPatient(req: Request, res: Response) {
   })
 }
 
+export async function updatePatient(req: Request, res: Response) {
+  const id = String(req.params.id)
+  const data = createPatientSchema.parse(req.body)
+
+  const existingPatient = await prisma.patient.findUnique({ where: { id } })
+  if (!existingPatient) {
+    return res.status(404).json({
+      ok: false,
+      message: "Patient not found",
+    })
+  }
+
+  const tutorExists = await prisma.tutor.findUnique({
+    where: { id: data.tutorId },
+  })
+
+  if (!tutorExists) {
+    return res.status(404).json({
+      ok: false,
+      message: "Tutor not found",
+    })
+  }
+
+  const speciesExists = await prisma.species.findUnique({
+    where: { id: data.speciesId },
+  })
+
+  if (!speciesExists) {
+    return res.status(404).json({
+      ok: false,
+      message: "Species not found",
+    })
+  }
+
+  const breed = await prisma.breed.findUnique({
+    where: { id: data.breedId },
+  })
+
+  if (!breed) {
+    return res.status(404).json({
+      ok: false,
+      message: "Breed not found",
+    })
+  }
+
+  if (breed.speciesId !== data.speciesId) {
+    return res.status(400).json({
+      ok: false,
+      message: "Breed does not match patient species",
+      field: "breedId",
+    })
+  }
+
+  const patient = await prisma.patient.update({
+    where: { id },
+    data,
+    include: {
+      species: true,
+      breed: true,
+    },
+  })
+
+  return res.json({
+    ok: true,
+    data: patient,
+  })
+}
+
 export async function getPatients(_req: Request, res: Response) {
   const patients = await prisma.patient.findMany({
     include: {
