@@ -16,6 +16,7 @@
 - Completed: show Spanish loading and error states.
 - Completed: validate the full flow against a live local database from the mobile app.
 - Completed: add a registration success state for adding another Patient or finishing.
+- Completed: add mobile Editar screens for Tutor and Patient, reached from a new Editar button on each detail screen.
 
 ### Patient Lookup
 - Completed: separate patient lookup by Patient and Tutor search modes.
@@ -31,10 +32,9 @@
 - Completed: add Tutor detail endpoint with related Patients for mobile flows.
 - Completed: replace free-text `Patient.species`/`Patient.breed` with `Species`/`Breed` reference tables, seeded catalog, and read-only `/api/species` and `/api/breeds` endpoints.
 - Completed: replace free-text `Tutor.address` with `region`/`comuna` selects (static Chile catalog, read-only `/api/regions`) plus a `streetAddress` field, so the Google Maps link always includes comuna, region, and country.
-- Add tutor update endpoint.
-- Add tutor delete endpoint.
-- Add patient update endpoint.
-- Add patient delete endpoint.
+- Completed: add tutor update endpoint.
+- Completed: add patient update endpoint.
+- Decided not to implement tutor/patient delete endpoints: `onDelete: Cascade` from Tutor/Patient down to Consultation and its clinical records means a hard delete would irreversibly erase medical history, with no auth or confirmation flow yet to guard it. Real deletions are handled manually against the database.
 - Return predictable validation and unique-constraint errors.
 - Add an admin-only CRUD maintainer for species and breeds (depends on authentication with roles — see Future Platform Features).
 

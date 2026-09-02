@@ -8,13 +8,11 @@
 
 ### Mobile
 - [ ] Improve patient detail layout for phones and tablets.
+- [ ] Manually verify the new Tutor/Patient edit screens on an Android phone via Expo Go (edit success, duplicate rut/email error, species/breed cascade reset, validation errors).
+- [ ] Fix `settings.tsx` (reachable from the drawer menu): it currently renders a duplicate of the "Guía rápida" content instead of an actual settings screen. Found while fixing the white-card styling below; not fixed yet since it's an unrelated content bug.
 
 ### Backend
-Agreed priority order: Tutor/Patient update and delete first, then basic authentication — neither exists yet and both are prerequisites for a usable (non-demo) system.
-- [ ] Add tutor update endpoint.
-- [ ] Add tutor delete endpoint.
-- [ ] Add patient update endpoint.
-- [ ] Add patient delete endpoint.
+Agreed priority order: Tutor/Patient update first, then basic authentication — neither exists yet and both are prerequisites for a usable (non-demo) system. Delete endpoints for Tutor/Patient were deliberately not implemented (see DONE note below).
 - [ ] Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
 - [ ] Normalize validation error responses.
 - [ ] Add an admin-only CRUD maintainer for species and breeds (create, search, update, delete). Depends on basic authentication with roles, since there is no way to restrict anything to administrators yet.
@@ -81,6 +79,12 @@ Agreed priority order: Tutor/Patient update and delete first, then basic authent
 - [x] Moved mobile API base URL out of hardcoded LAN IP into `EXPO_PUBLIC_API_URL` (`apps/mobile/.env`, with `apps/mobile/.env.example` as template).
 - [x] Converted `Patient.species` and `Patient.breed` from free text to `Species`/`Breed` reference tables, seeded with an initial Perro/Gato catalog, with read-only `GET /api/species` and `GET /api/breeds?speciesId=...` endpoints and mobile pickers replacing the free-text inputs.
 - [x] Converted `Tutor.address` (free text) into `region`/`comuna` selects (static 16-region/346-comuna Chile catalog, read-only `GET /api/regions`) plus a `streetAddress` field, fixing the Google Maps link opening in the wrong country.
+- [x] Added tutor update endpoint (`PUT /api/tutors/:id`) with duplicate rut/email checks that exclude the tutor's own record, and API integration tests covering success, missing tutor, rut/email conflicts with another tutor, keeping own rut/email, and region/comuna and rut validation.
+- [x] Added patient update endpoint (`PUT /api/patients/:id`), reusing `createPatientSchema` and the same tutor/species/breed existence and species-match validation as `createPatient`, with API integration tests covering success and each 404/400 validation case.
+- [x] Decided not to implement delete endpoints for Tutor or Patient: `Patient.tutor` and `Consultation.patient` use `onDelete: Cascade`, so a hard delete would cascade-erase a tutor's or patient's entire clinical history with no undo and no auth/confirmation in place yet. Real deletions are handled manually against the database for now, consistent with how veterinary/clinical SaaS products generally avoid exposing destructive cascading deletes from the app.
+- [x] Added mobile "Editar" screens for Tutor and Patient (`tutors/edit.tsx`, `patients/edit.tsx`), reusing `TutorForm`/`PatientForm` unchanged and calling the existing `PUT` endpoints via new `updateTutor`/`updatePatient` service functions. Added an "Editar" button to both detail screens. Patient's Tutor is fixed (not reassignable) in this flow. Fixed Patient detail to use `useFocusEffect` instead of a plain `useEffect` so it refreshes after returning from edit (it previously only refetched on `id` change, same gap already fixed for Tutor detail earlier).
+- [x] Hid `tutors/edit`/`patients/edit` from the bottom tab bar (`(tabs)/_layout.tsx`): Expo Router auto-registers every route file as a tab unless explicitly given `href: null`, which these two were missing.
+- [x] Replaced white cards/text on dark background with the app's existing dark-card palette (`#1E293B` card, `#334155` border, `colors.text`/`colors.muted` text) in `ayuda.tsx`, `tutors/[id].tsx`, `patients/[id].tsx`, and `patients/search.tsx` (including nested patient rows and the "Ver ficha del tutor" button's text color).
 
 ## Rules
 
