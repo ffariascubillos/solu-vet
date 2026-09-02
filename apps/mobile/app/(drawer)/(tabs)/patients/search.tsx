@@ -217,7 +217,7 @@ export default function SearchPatientScreen() {
               <Button
                 mode="outlined"
                 onPress={() => router.push(`/tutors/${item.id}` as Href)}
-                textColor="#0f172a"
+                textColor={colors.text}
                 style={styles.tutorDetailButton}
                 icon="file-eye">
                 Ver ficha del tutor
@@ -342,50 +342,50 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   card: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "#1E293B",
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#334155",
   },
   resultTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0f172a",
+    color: colors.text,
     marginBottom: 6,
   },
   cardText: {
     fontSize: 15,
-    color: "#475569",
+    color: colors.muted,
     marginBottom: 4,
   },
   patientListTitle: {
-    color: "#0f172a",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "700",
     marginBottom: 8,
     marginTop: 10,
   },
   tutorDetailButton: {
-    borderColor: "#cbd5e1",
+    borderColor: colors.muted,
     borderRadius: 8,
     marginTop: 8,
   },
   patientRow: {
-    backgroundColor: "#f8fafc",
-    borderColor: "#e2e8f0",
+    backgroundColor: "#0F172A",
+    borderColor: "#334155",
     borderRadius: 8,
     borderWidth: 1,
     marginTop: 8,
     padding: 12,
   },
   patientRowTitle: {
-    color: "#0f172a",
+    color: colors.text,
     fontSize: 15,
     fontWeight: "700",
   },
   patientRowText: {
-    color: "#475569",
+    color: colors.muted,
     marginTop: 2,
   },
 });
