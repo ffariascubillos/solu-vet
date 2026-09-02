@@ -1,4 +1,4 @@
-import type { CreatePatientInput } from '@/src/types/patient';
+import type { CreatePatientInput, Patient, Tutor } from '@/src/types/patient';
 
 export type TutorForm = {
   firstName: string;
@@ -41,3 +41,27 @@ export const initialPatientForm: PatientForm = {
   breedId: '',
   reproductiveStatus: 'NOT_STERILIZED',
 };
+
+export function toTutorFormState(tutor: Tutor): TutorForm {
+  return {
+    firstName: tutor.firstName,
+    lastName: tutor.lastName,
+    region: tutor.region,
+    comuna: tutor.comuna,
+    streetAddress: tutor.streetAddress,
+    email: tutor.email ?? '',
+    phone: tutor.phone,
+    rut: tutor.rut,
+  };
+}
+
+export function toPatientFormState(patient: Patient): PatientForm {
+  return {
+    firstName: patient.firstName,
+    sex: patient.sex,
+    age: patient.age != null ? String(patient.age) : '',
+    speciesId: patient.speciesId,
+    breedId: patient.breedId,
+    reproductiveStatus: patient.reproductiveStatus,
+  };
+}

@@ -107,6 +107,31 @@ export async function createPatient(data: CreatePatientInput) {
   return response.data.data;
 }
 
+type UpdateTutorResponse = {
+  ok: boolean;
+  data: Tutor;
+};
+
+type UpdatePatientResponse = {
+  ok: boolean;
+  data: CreatedPatient;
+};
+
+export async function updateTutor(id: string, data: CreateTutorInput) {
+  const response = await api.put<UpdateTutorResponse>(`/tutors/${id}`, data);
+
+  return response.data.data;
+}
+
+export async function updatePatient(id: string, data: CreatePatientInput) {
+  const response = await api.put<UpdatePatientResponse>(
+    `/patients/${id}`,
+    data,
+  );
+
+  return response.data.data;
+}
+
 export async function getSpecies() {
   const response = await api.get<GetSpeciesResponse>("/species");
 

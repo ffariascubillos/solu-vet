@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import { prisma } from "../../lib/prisma.js"
-import { createTutorSchema } from "./tutors.schemas.js"
+import { createTutorSchema, updateTutorSchema } from "./tutors.schemas.js"
 
 export async function createTutor(req: Request, res: Response) {
   const data = createTutorSchema.parse(req.body)
@@ -36,6 +36,55 @@ export async function createTutor(req: Request, res: Response) {
   })
 
   return res.status(201).json({
+    ok: true,
+    data: tutor,
+  })
+}
+
+export async function updateTutor(req: Request, res: Response) {
+  const id = String(req.params.id)
+  const data = updateTutorSchema.parse(req.body)
+
+  const existingTutor = await prisma.tutor.findUnique({ where: { id } })
+  if (!existingTutor) {
+    return res.status(404).json({
+      ok: false,
+      message: "Tutor not found",
+    })
+  }
+
+  const tutorWithSameRut = await prisma.tutor.findUnique({
+    where: { rut: data.rut },
+  })
+
+  if (tutorWithSameRut && tutorWithSameRut.id !== id) {
+    return res.status(409).json({
+      ok: false,
+      message: "Ya existe un tutor con este RUT.",
+      field: "rut",
+    })
+  }
+
+  if (data.email) {
+    const tutorWithSameEmail = await prisma.tutor.findUnique({
+      where: { email: data.email },
+    })
+
+    if (tutorWithSameEmail && tutorWithSameEmail.id !== id) {
+      return res.status(409).json({
+        ok: false,
+        message: "Ya existe un tutor con este correo.",
+        field: "email",
+      })
+    }
+  }
+
+  const tutor = await prisma.tutor.update({
+    where: { id },
+    data,
+  })
+
+  return res.status(200).json({
     ok: true,
     data: tutor,
   })

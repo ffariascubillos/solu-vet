@@ -78,6 +78,14 @@ The latest local checks passed:
 - Replaced the mobile Tutor registration form's free-text "Dirección" input with dependent "Región"/"Comuna" selects (same `SelectField` cascade pattern as Species/Breed) plus a "Calle y número" free-text field for `streetAddress`.
 - Added a shared `formatTutorAddress`/`buildTutorMapsUrl` helper (`apps/mobile/src/features/patients/tutor-address.ts`) so Tutor detail and Patient detail build the same Maps query (`streetAddress, comuna, region, Chile`) instead of duplicating the logic.
 - Truncated the local `Tutor`/`Patient` tables (dev and `solu_vet_test`) before applying the migration, since there was no production data and the existing free-text `address` values could not be split into the new required `region`/`comuna`/`streetAddress` fields.
+- Added `updateTutor` (`PUT /api/tutors/:id`): full-replace update (same schema shape as `createTutorSchema`) with a 404 if the tutor doesn't exist, and duplicate rut/email pre-checks that exclude the tutor's own current record so saving a tutor with its own unchanged rut/email no longer triggers a false `409`.
+- Added API integration tests for tutor update: success, missing tutor `404`, rut conflict with another tutor `409`, email conflict with another tutor `409`, keeping own rut/email `200`, region/comuna mismatch `400`, invalid rut `400`.
+- Added `updatePatient` (`PUT /api/patients/:id`): full-replace update reusing `createPatientSchema` directly (no new schema needed, since it's a plain `z.object()` with no unique-field validation to work around), with the same tutor/species/breed existence and species-match validation order as `createPatient`.
+- Added API integration tests for patient update: success, missing patient `404`, missing tutor `404`, missing species `404`, missing breed `404`, breed/species mismatch `400`.
+- Decided not to implement `DELETE` endpoints for Tutor or Patient. `Patient.tutor` and `Consultation.patient` are `onDelete: Cascade` in the Prisma schema, so a hard delete of a Tutor or Patient would cascade-erase all related Patients/Consultations/HomeTreatment/FollowUp/VaccineRecord/Attachment records with no way to undo it, and there is no authentication or mobile confirmation flow to guard against accidental or malicious use. This matches how veterinary/clinical SaaS products generally behave — they don't expose destructive cascading deletes from the app; real deletions are handled manually against the database when genuinely needed. Update (already implemented for both Tutor and Patient) covers the practical need to correct mis-entered data.
+- Added mobile edit screens for Tutor (`apps/mobile/app/(drawer)/(tabs)/tutors/edit.tsx`) and Patient (`.../patients/edit.tsx`), reached via a new "Editar" button on each detail screen. Both reuse the existing `TutorForm`/`PatientForm` components unchanged (they were already pure/controlled, no create-specific logic inside them), seeded from the loaded record via new `toTutorFormState`/`toPatientFormState` helpers in `registration.types.ts`, and submit through new `updateTutor`/`updatePatient` functions in `patients.service.ts` that call the existing `PUT` endpoints.
+- Patient edit keeps the Tutor fixed (not reassignable) — only the patient's own fields (name, sex, age, species, breed, reproductive status) are editable, matching what `PatientForm` already exposes during registration. `lastName` is still not a visible input; on update it's resent as the patient's current `tutor.lastName`, so it also self-corrects if the tutor's last name changed since the patient was created.
+- Fixed Patient detail (`patients/[id].tsx`) to load data with `useFocusEffect` instead of a plain `useEffect` keyed only on `id`, so navigating back from Patient edit (same `id`) actually refetches and shows the updated record — Tutor detail already had this behavior; Patient detail did not until now.
 
 ## Problems Resolved
 
@@ -130,12 +138,12 @@ Implemented:
 - List Tutors: `GET /api/tutors`.
 - Search Tutors: `GET /api/tutors/search?q=...`, including related Patients.
 - Get Tutor detail: `GET /api/tutors/:id`, including related Patients.
-- Duplicate RUT response: `409 Conflict` with `{ ok: false, message: "Ya existe un tutor con este RUT.", field: "rut" }`.
-- Duplicate email response: `409 Conflict` with `{ ok: false, message: "Ya existe un tutor con este correo.", field: "email" }`.
+- Update Tutor: `PUT /api/tutors/:id`, full-replace, `404` if missing.
+- Duplicate RUT response: `409 Conflict` with `{ ok: false, message: "Ya existe un tutor con este RUT.", field: "rut" }` (create and update; update excludes the tutor's own record).
+- Duplicate email response: `409 Conflict` with `{ ok: false, message: "Ya existe un tutor con este correo.", field: "email" }` (create and update; update excludes the tutor's own record).
 
 Not implemented:
-- Update Tutor.
-- Delete Tutor.
+- Delete Tutor (deliberately not implemented — see Technical Decisions).
 
 ### Patients
 
@@ -144,13 +152,13 @@ Implemented:
 - List Patients: `GET /api/patients`.
 - Search Patients: `GET /api/patients/search?q=...` by Patient fields.
 - Get Patient detail: `GET /api/patients/:id`, including Tutor, Species, Breed, and Consultations.
-- Create Patient validates that `tutorId` exists before insertion.
-- Create Patient validates that `speciesId` exists, `breedId` exists, and the breed belongs to the selected species before insertion.
+- Update Patient: `PUT /api/patients/:id`, full-replace, `404` if missing.
+- Create/Update Patient validate that `tutorId` exists before insertion/update.
+- Create/Update Patient validate that `speciesId` exists, `breedId` exists, and the breed belongs to the selected species.
 - All Patient read endpoints (`GET /api/patients`, `GET /api/patients/search`, `GET /api/patients/:id`) include the related `Species` and `Breed` records.
 
 Not implemented:
-- Update Patient.
-- Delete Patient.
+- Delete Patient (deliberately not implemented — see Technical Decisions).
 
 ### Species / Breeds
 
@@ -205,8 +213,10 @@ Prisma models exist for:
 - Tutor registration shows Spanish validation, loading, and duplicate RUT/email field errors.
 - Patient registration starts from a selected Tutor, creates only a Patient with that `tutorId`, and returns to Tutor detail.
 - Patient registration shows loading state while saving.
-- Tutor detail loads API data and shows Tutor information, all related Patients, Patient detail links, Maps link, and an add-Patient action.
-- Patient detail loads API data and shows Tutor, Patient, consultation summary, Spanish enum labels, and a Google Maps link from Tutor address.
+- Tutor detail loads API data and shows Tutor information, all related Patients, Patient detail links, Maps link, an add-Patient action, and an Editar action.
+- Patient detail loads API data (now via `useFocusEffect`, refreshing on return navigation) and shows Tutor, Patient, consultation summary, Spanish enum labels, a Google Maps link from Tutor address, and an Editar action.
+- Tutor edit screen loads the existing Tutor, reuses `TutorForm`, and saves via `PUT /api/tutors/:id`, with the same Spanish validation and duplicate RUT/email field errors as registration.
+- Patient edit screen loads the existing Patient, reuses `PatientForm` with the Tutor shown read-only (not reassignable), and saves via `PUT /api/patients/:id`.
 - Main MVP screens use Spanish veterinarian-facing copy.
 
 ## Partially Implemented
@@ -251,10 +261,8 @@ Prisma models exist for:
 
 ## Recommended Next Steps
 
-Agreed priority order: (1) Tutor/Patient update and delete endpoints, (2) basic authentication, since neither exists yet and both are prerequisites for a usable (non-demo) system. The Species/Breed data model change (this session) was done ahead of this order because it was a blocking data-quality fix for the Patient registration form.
+Agreed priority order: (1) Tutor/Patient update endpoints, (2) basic authentication, since neither exists yet and both are prerequisites for a usable (non-demo) system. Delete endpoints were deliberately dropped from this order (see Technical Decisions). The Species/Breed data model change (an earlier session) was done ahead of this order because it was a blocking data-quality fix for the Patient registration form.
 
-1. Implement Tutor update/delete.
-2. Implement Patient update/delete.
-3. Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
-4. Add the admin-only Species/Breed CRUD maintainer (depends on step 3).
-5. Improve Patient detail layout for phones and tablets.
+1. Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
+2. Add the admin-only Species/Breed CRUD maintainer (depends on step 1).
+3. Improve Patient detail layout for phones and tablets.

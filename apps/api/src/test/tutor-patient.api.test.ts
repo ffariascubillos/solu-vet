@@ -321,6 +321,138 @@ describe("Tutor and Patient API", () => {
     expect(response.body.ok).toBe(false)
   })
 
+  it("updates a patient", async () => {
+    const tutor = await createTutor()
+    const createResponse = await request(app)
+      .post("/api/patients")
+      .send(await createPatientPayload(tutor.id))
+    const patientId = createResponse.body.data.id as string
+
+    const updatePayload = await createPatientPayload(tutor.id, {
+      firstName: "Nala",
+      age: 6,
+    })
+
+    const response = await request(app)
+      .put(`/api/patients/${patientId}`)
+      .send(updatePayload)
+
+    expect(response.status).toBe(200)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data).toMatchObject({
+      id: patientId,
+      firstName: "Nala",
+      age: 6,
+    })
+  })
+
+  it("returns 404 when updating a missing patient", async () => {
+    const tutor = await createTutor()
+
+    const response = await request(app)
+      .put("/api/patients/missing-patient-id")
+      .send(await createPatientPayload(tutor.id))
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Patient not found",
+    })
+  })
+
+  it("returns 404 when updating a patient with a missing tutor", async () => {
+    const tutor = await createTutor()
+    const createResponse = await request(app)
+      .post("/api/patients")
+      .send(await createPatientPayload(tutor.id))
+    const patientId = createResponse.body.data.id as string
+
+    const response = await request(app)
+      .put(`/api/patients/${patientId}`)
+      .send(await createPatientPayload("missing-tutor-id"))
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Tutor not found",
+    })
+  })
+
+  it("returns 404 when updating a patient with a missing species", async () => {
+    const tutor = await createTutor()
+    const createResponse = await request(app)
+      .post("/api/patients")
+      .send(await createPatientPayload(tutor.id))
+    const patientId = createResponse.body.data.id as string
+
+    const response = await request(app)
+      .put(`/api/patients/${patientId}`)
+      .send(
+        await createPatientPayload(tutor.id, {
+          speciesId: "missing-species-id",
+        }),
+      )
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Species not found",
+    })
+  })
+
+  it("returns 404 when updating a patient with a missing breed", async () => {
+    const tutor = await createTutor()
+    const createResponse = await request(app)
+      .post("/api/patients")
+      .send(await createPatientPayload(tutor.id))
+    const patientId = createResponse.body.data.id as string
+
+    const response = await request(app)
+      .put(`/api/patients/${patientId}`)
+      .send(
+        await createPatientPayload(tutor.id, {
+          breedId: "missing-breed-id",
+        }),
+      )
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Breed not found",
+    })
+  })
+
+  it("returns 400 when updating a patient with a breed that does not match species", async () => {
+    const tutor = await createTutor()
+    const createResponse = await request(app)
+      .post("/api/patients")
+      .send(await createPatientPayload(tutor.id))
+    const patientId = createResponse.body.data.id as string
+
+    const cat = await prisma.species.findFirstOrThrow({
+      where: { name: "Gato" },
+    })
+    const dogBreed = await prisma.breed.findFirstOrThrow({
+      where: { species: { name: "Perro" } },
+    })
+
+    const response = await request(app)
+      .put(`/api/patients/${patientId}`)
+      .send(
+        await createPatientPayload(tutor.id, {
+          speciesId: cat.id,
+          breedId: dogBreed.id,
+        }),
+      )
+
+    expect(response.status).toBe(400)
+    expect(response.body).toMatchObject({
+      ok: false,
+      field: "breedId",
+      message: "Breed does not match patient species",
+    })
+  })
+
   it("creates multiple patients for the same tutor", async () => {
     const tutor = await createTutor()
 
@@ -457,6 +589,133 @@ describe("Tutor and Patient API", () => {
       ok: false,
       message: "Tutor not found",
     })
+  })
+
+  it("updates a tutor", async () => {
+    const tutor = await createTutor()
+
+    const response = await request(app)
+      .put(`/api/tutors/${tutor.id}`)
+      .send(
+        createTutorPayload({
+          firstName: "Andrea",
+          phone: "+56987654321",
+        }),
+      )
+
+    expect(response.status).toBe(200)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data).toMatchObject({
+      id: tutor.id,
+      firstName: "Andrea",
+      phone: "+56987654321",
+    })
+  })
+
+  it("returns 404 when updating a missing tutor", async () => {
+    const response = await request(app)
+      .put("/api/tutors/missing-tutor-id")
+      .send(createTutorPayload())
+
+    expect(response.status).toBe(404)
+    expect(response.body).toMatchObject({
+      ok: false,
+      message: "Tutor not found",
+    })
+  })
+
+  it("returns 409 when updating a tutor to a rut used by another tutor", async () => {
+    const tutorA = await createTutor({ rut: "11111111-1" })
+    await createTutor({
+      rut: "22222222-2",
+      email: "other@example.com",
+    })
+
+    const response = await request(app)
+      .put(`/api/tutors/${tutorA.id}`)
+      .send(createTutorPayload({ rut: "22222222-2" }))
+
+    expect(response.status).toBe(409)
+    expect(response.body).toMatchObject({
+      ok: false,
+      field: "rut",
+      message: "Ya existe un tutor con este RUT.",
+    })
+  })
+
+  it("returns 409 when updating a tutor to an email used by another tutor", async () => {
+    const tutorA = await createTutor({ rut: "11111111-1" })
+    await createTutor({
+      rut: "22222222-2",
+      email: "other@example.com",
+    })
+
+    const response = await request(app)
+      .put(`/api/tutors/${tutorA.id}`)
+      .send(
+        createTutorPayload({
+          rut: "11111111-1",
+          email: "other@example.com",
+        }),
+      )
+
+    expect(response.status).toBe(409)
+    expect(response.body).toMatchObject({
+      ok: false,
+      field: "email",
+      message: "Ya existe un tutor con este correo.",
+    })
+  })
+
+  it("allows updating a tutor while keeping its own rut and email", async () => {
+    const payload = createTutorPayload()
+    const tutor = await createTutor(payload)
+
+    const response = await request(app)
+      .put(`/api/tutors/${tutor.id}`)
+      .send(createTutorPayload({ ...payload, streetAddress: "Nueva Direccion 456" }))
+
+    expect(response.status).toBe(200)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data).toMatchObject({
+      id: tutor.id,
+      rut: payload.rut,
+      email: payload.email,
+      streetAddress: "Nueva Direccion 456",
+    })
+  })
+
+  it("returns 400 when updated tutor comuna does not belong to the selected region", async () => {
+    const tutor = await createTutor()
+
+    const response = await request(app)
+      .put(`/api/tutors/${tutor.id}`)
+      .send(
+        createTutorPayload({
+          region: "Metropolitana de Santiago",
+          comuna: "Valparaíso",
+        }),
+      )
+
+    expect(response.status).toBe(400)
+    expect(response.body.ok).toBe(false)
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: ["comuna"] })]),
+    )
+  })
+
+  it("returns 400 when updated tutor rut has an invalid check digit", async () => {
+    const tutor = await createTutor()
+
+    const response = await request(app)
+      .put(`/api/tutors/${tutor.id}`)
+      .send(createTutorPayload({ rut: "12345678-0" }))
+
+    expect(response.status).toBe(400)
+    expect(response.body.ok).toBe(false)
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: ["rut"] })]),
+    )
   })
 
   it("returns 400 when tutor search query is missing", async () => {
