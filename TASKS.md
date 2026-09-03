@@ -7,7 +7,6 @@
 ## NEXT
 
 ### Mobile
-- [ ] Improve patient detail layout for phones and tablets.
 - [ ] Manually verify the new Tutor/Patient edit screens on an Android phone via Expo Go (edit success, duplicate rut/email error, species/breed cascade reset, validation errors).
 - [ ] Fix `settings.tsx` (reachable from the drawer menu): it currently renders a duplicate of the "Guía rápida" content instead of an actual settings screen. Found while fixing the white-card styling below; not fixed yet since it's an unrelated content bug.
 
@@ -85,6 +84,7 @@ Agreed priority order: Tutor/Patient update first, then basic authentication —
 - [x] Added mobile "Editar" screens for Tutor and Patient (`tutors/edit.tsx`, `patients/edit.tsx`), reusing `TutorForm`/`PatientForm` unchanged and calling the existing `PUT` endpoints via new `updateTutor`/`updatePatient` service functions. Added an "Editar" button to both detail screens. Patient's Tutor is fixed (not reassignable) in this flow. Fixed Patient detail to use `useFocusEffect` instead of a plain `useEffect` so it refreshes after returning from edit (it previously only refetched on `id` change, same gap already fixed for Tutor detail earlier).
 - [x] Hid `tutors/edit`/`patients/edit` from the bottom tab bar (`(tabs)/_layout.tsx`): Expo Router auto-registers every route file as a tab unless explicitly given `href: null`, which these two were missing.
 - [x] Replaced white cards/text on dark background with the app's existing dark-card palette (`#1E293B` card, `#334155` border, `colors.text`/`colors.muted` text) in `ayuda.tsx`, `tutors/[id].tsx`, `patients/[id].tsx`, and `patients/search.tsx` (including nested patient rows and the "Ver ficha del tutor" button's text color).
+- [x] Improved Patient detail and Tutor detail layout for tablets: added a shared `useIsTablet()` hook (`apps/mobile/src/hooks/useIsTablet.ts`, `useWindowDimensions` at a 600dp breakpoint — Android's `sw600dp` convention) and, at tablet width, arranged Patient detail's "Datos del paciente"/"Tutor" cards and Tutor detail's "Datos del tutor"/"Mascotas" cards side by side (unequal heights allowed), with "Consultas" staying full-width below on Patient detail. Below 600dp both screens keep their existing single-column stack unchanged.
 
 ## Rules
 

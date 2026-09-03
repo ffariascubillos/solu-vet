@@ -22,7 +22,7 @@
 - Completed: separate patient lookup by Patient and Tutor search modes.
 - Completed: improve patient search empty state.
 - Completed: improve patient search error state and retry behavior.
-- Improve patient detail layout for phones and tablets.
+- Completed: improve Patient detail and Tutor detail layout for phones and tablets (shared `useIsTablet` hook, 600dp breakpoint, two-column card layout on tablet width).
 - Completed: add Tutor detail screen with related Patients.
 - Completed: map backend enum values to Spanish UI labels in patient detail.
 - Completed: keep MVP registration/detail/home copy neutral for clinic, hospital, home-visit, and mixed workflows.

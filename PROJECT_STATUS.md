@@ -2,7 +2,7 @@
 
 ## Project Status
 
-Last audited: 2026-09-01.
+Last audited: 2026-09-03.
 
 ## Current Reality
 
@@ -86,6 +86,9 @@ The latest local checks passed:
 - Added mobile edit screens for Tutor (`apps/mobile/app/(drawer)/(tabs)/tutors/edit.tsx`) and Patient (`.../patients/edit.tsx`), reached via a new "Editar" button on each detail screen. Both reuse the existing `TutorForm`/`PatientForm` components unchanged (they were already pure/controlled, no create-specific logic inside them), seeded from the loaded record via new `toTutorFormState`/`toPatientFormState` helpers in `registration.types.ts`, and submit through new `updateTutor`/`updatePatient` functions in `patients.service.ts` that call the existing `PUT` endpoints.
 - Patient edit keeps the Tutor fixed (not reassignable) — only the patient's own fields (name, sex, age, species, breed, reproductive status) are editable, matching what `PatientForm` already exposes during registration. `lastName` is still not a visible input; on update it's resent as the patient's current `tutor.lastName`, so it also self-corrects if the tutor's last name changed since the patient was created.
 - Fixed Patient detail (`patients/[id].tsx`) to load data with `useFocusEffect` instead of a plain `useEffect` keyed only on `id`, so navigating back from Patient edit (same `id`) actually refetches and shows the updated record — Tutor detail already had this behavior; Patient detail did not until now.
+- Added `apps/mobile/src/hooks/useIsTablet.ts`, the app's first responsive-layout primitive: `useWindowDimensions()` compared against a 600dp breakpoint (Android's `sw600dp` phone/tablet resource-qualifier convention).
+- Updated Patient detail (`patients/[id].tsx`) so at tablet width (>=600dp) "Datos del paciente" and "Tutor" render side by side in a row, with "Consultas" full-width below; below 600dp the screen keeps its existing single-column stack unchanged.
+- Updated Tutor detail (`tutors/[id].tsx`) so at tablet width "Datos del tutor" and "Mascotas" render side by side, with `alignItems: 'flex-start'` so "Mascotas" can grow taller than "Datos del tutor" without stretching it; below 600dp the screen keeps its existing single-column stack unchanged.
 
 ## Problems Resolved
 
@@ -218,6 +221,7 @@ Prisma models exist for:
 - Tutor edit screen loads the existing Tutor, reuses `TutorForm`, and saves via `PUT /api/tutors/:id`, with the same Spanish validation and duplicate RUT/email field errors as registration.
 - Patient edit screen loads the existing Patient, reuses `PatientForm` with the Tutor shown read-only (not reassignable), and saves via `PUT /api/patients/:id`.
 - Main MVP screens use Spanish veterinarian-facing copy.
+- Patient detail and Tutor detail use a two-column card layout at tablet width (>=600dp, via the shared `useIsTablet` hook) and keep the original single-column stack below that width.
 
 ## Partially Implemented
 
@@ -251,6 +255,7 @@ Prisma models exist for:
 - The `Patient` table (local dev and `solu_vet_test`) was truncated before applying the migration, since the existing free-text `species` values could not be cast to the new required foreign keys; there was no production data at risk.
 - Live phone testing with Expo Go against the local API confirmed the full Species/Breed flow end to end: Patient registration with the new species/breed selects, Patient detail, Tutor detail with related Patients, and Patient/Tutor search — including the `tutors.controller.ts` include fix, verified after a crash was found and fixed during this same testing session.
 - API TypeScript check, API integration tests (24 tests, including the new region/comuna validation and `/api/regions` coverage), mobile TypeScript check, and mobile lint all passed after converting `Tutor.address` to `region`/`comuna`/`streetAddress`.
+- Mobile TypeScript check and mobile lint passed after adding `useIsTablet` and the Patient/Tutor detail tablet layout. Visually verified both screens at tablet-width (900px) and phone-width (390px) viewports via `expo start --web` driven by a headless Playwright script against real Tutor/Patient data, with no browser console errors; no physical Android tablet/emulator was available in this environment, so a follow-up pass on a real device is recommended before considering this fully closed.
 
 ## Risks Pending
 
@@ -265,4 +270,3 @@ Agreed priority order: (1) Tutor/Patient update endpoints, (2) basic authenticat
 
 1. Add basic authentication (no auth flow exists today; anyone with the API URL has full access to Tutor/Patient data).
 2. Add the admin-only Species/Breed CRUD maintainer (depends on step 1).
-3. Improve Patient detail layout for phones and tablets.

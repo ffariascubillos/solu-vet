@@ -3,6 +3,7 @@ import {
   buildTutorMapsUrl,
   formatTutorAddress,
 } from "@/src/features/patients/tutor-address";
+import { useIsTablet } from "@/src/hooks/useIsTablet";
 import { Patient } from "@/src/types/patient";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams, type Href } from "expo-router";
@@ -30,6 +31,7 @@ const reproductiveStatusLabels: Record<Patient["reproductiveStatus"], string> = 
 
 export default function PatientDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const isTablet = useIsTablet();
 
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
@@ -101,46 +103,48 @@ export default function PatientDetailScreen() {
         {patient.firstName} {patient.lastName}
       </Text>
 
-      <View style={styles.card}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Datos del paciente</Text>
-          <Button
-            mode="outlined"
-            onPress={() =>
-              router.push(`/patients/edit?id=${patient.id}` as Href)
-            }
-            icon="pencil"
-            compact>
-            Editar
-          </Button>
+      <View style={isTablet ? styles.row : undefined}>
+        <View style={[styles.card, isTablet && styles.rowItem]}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Datos del paciente</Text>
+            <Button
+              mode="outlined"
+              onPress={() =>
+                router.push(`/patients/edit?id=${patient.id}` as Href)
+              }
+              icon="pencil"
+              compact>
+              Editar
+            </Button>
+          </View>
+          <Text style={styles.text}>Especie: {patient.species.name}</Text>
+          <Text style={styles.text}>Raza: {patient.breed.name}</Text>
+          <Text style={styles.text}>Edad: {patient.age ?? "No registrada"}</Text>
+          <Text style={styles.text}>Sexo: {sexLabels[patient.sex]}</Text>
+          <Text style={styles.text}>
+            Estado reproductivo:{" "}
+            {reproductiveStatusLabels[patient.reproductiveStatus]}
+          </Text>
         </View>
-        <Text style={styles.text}>Especie: {patient.species.name}</Text>
-        <Text style={styles.text}>Raza: {patient.breed.name}</Text>
-        <Text style={styles.text}>Edad: {patient.age ?? "No registrada"}</Text>
-        <Text style={styles.text}>Sexo: {sexLabels[patient.sex]}</Text>
-        <Text style={styles.text}>
-          Estado reproductivo:{" "}
-          {reproductiveStatusLabels[patient.reproductiveStatus]}
-        </Text>
-      </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Tutor</Text>
-        <Text style={styles.text}>
-          Nombre: {patient.tutor.firstName} {patient.tutor.lastName}
-        </Text>
-        <Text style={styles.text}>
-          Dirección: {formatTutorAddress(patient.tutor)}
-        </Text>
-        <Text style={styles.text}>Teléfono: {patient.tutor.phone}</Text>
-        <Text style={styles.text}>
-          Correo: {patient.tutor.email || "No registrado"}
-        </Text>
-        <Text style={styles.text}>RUT: {patient.tutor.rut}</Text>
+        <View style={[styles.card, isTablet && styles.rowItem]}>
+          <Text style={styles.sectionTitle}>Tutor</Text>
+          <Text style={styles.text}>
+            Nombre: {patient.tutor.firstName} {patient.tutor.lastName}
+          </Text>
+          <Text style={styles.text}>
+            Dirección: {formatTutorAddress(patient.tutor)}
+          </Text>
+          <Text style={styles.text}>Teléfono: {patient.tutor.phone}</Text>
+          <Text style={styles.text}>
+            Correo: {patient.tutor.email || "No registrado"}
+          </Text>
+          <Text style={styles.text}>RUT: {patient.tutor.rut}</Text>
 
-        <TouchableOpacity style={styles.mapButton} onPress={openMaps}>
-          <Text style={styles.mapButtonText}>Ver dirección en Maps</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.mapButton} onPress={openMaps}>
+            <Text style={styles.mapButtonText}>Ver dirección en Maps</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.card}>
@@ -216,6 +220,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#334155",
     marginBottom: 18,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 18,
+  },
+  rowItem: {
+    flex: 1,
   },
   sectionHeader: {
     alignItems: "center",

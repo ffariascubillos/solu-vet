@@ -3,6 +3,7 @@ import {
   buildTutorMapsUrl,
   formatTutorAddress,
 } from '@/src/features/patients/tutor-address';
+import { useIsTablet } from '@/src/hooks/useIsTablet';
 import type { TutorWithPatients } from '@/src/types/patient';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
@@ -20,6 +21,7 @@ import { Button } from 'react-native-paper';
 
 export default function TutorDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const isTablet = useIsTablet();
   const [tutor, setTutor] = useState<TutorWithPatients | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -117,64 +119,66 @@ export default function TutorDetailScreen() {
         {tutor.firstName} {tutor.lastName}
       </Text>
 
-      <View style={styles.card}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Datos del tutor</Text>
+      <View style={isTablet ? styles.row : undefined}>
+        <View style={[styles.card, isTablet && styles.rowItem]}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Datos del tutor</Text>
+            <Button
+              mode="outlined"
+              onPress={() =>
+                router.push(`/tutors/edit?id=${tutor.id}` as Href)
+              }
+              icon="pencil"
+              compact>
+              Editar
+            </Button>
+          </View>
+          <Text style={styles.text}>RUT: {tutor.rut}</Text>
+          <Text style={styles.text}>Teléfono: {tutor.phone}</Text>
+          <Text style={styles.text}>
+            Correo: {tutor.email || 'No registrado'}
+          </Text>
+          <Text style={styles.text}>Dirección: {formatTutorAddress(tutor)}</Text>
+
+          <TouchableOpacity style={styles.mapButton} onPress={openMaps}>
+            <Text style={styles.mapButtonText}>Ver dirección en Maps</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.card, isTablet && styles.rowItem]}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Mascotas</Text>
+            <Text style={styles.countText}>{tutor.patients.length}</Text>
+          </View>
+
+          {!tutor.patients.length ? (
+            <Text style={styles.text}>Sin mascotas registradas</Text>
+          ) : (
+            tutor.patients.map((patient) => (
+              <TouchableOpacity
+                key={patient.id}
+                style={styles.patientRow}
+                onPress={() => openPatient(patient.id)}>
+                <Text style={styles.patientName}>
+                  {patient.firstName} {patient.lastName}
+                </Text>
+                <Text style={styles.patientText}>
+                  Especie: {patient.species.name}
+                </Text>
+                <Text style={styles.patientText}>Raza: {patient.breed.name}</Text>
+              </TouchableOpacity>
+            ))
+          )}
+
           <Button
-            mode="outlined"
-            onPress={() =>
-              router.push(`/tutors/edit?id=${tutor.id}` as Href)
-            }
-            icon="pencil"
-            compact>
-            Editar
+            mode="contained"
+            onPress={addPatient}
+            style={styles.addButton}
+            contentStyle={styles.addButtonContent}
+            icon="plus">
+            Agregar mascota
           </Button>
         </View>
-        <Text style={styles.text}>RUT: {tutor.rut}</Text>
-        <Text style={styles.text}>Teléfono: {tutor.phone}</Text>
-        <Text style={styles.text}>
-          Correo: {tutor.email || 'No registrado'}
-        </Text>
-        <Text style={styles.text}>Dirección: {formatTutorAddress(tutor)}</Text>
-
-        <TouchableOpacity style={styles.mapButton} onPress={openMaps}>
-          <Text style={styles.mapButtonText}>Ver dirección en Maps</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.card}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Mascotas</Text>
-          <Text style={styles.countText}>{tutor.patients.length}</Text>
-        </View>
-
-        {!tutor.patients.length ? (
-          <Text style={styles.text}>Sin mascotas registradas</Text>
-        ) : (
-          tutor.patients.map((patient) => (
-            <TouchableOpacity
-              key={patient.id}
-              style={styles.patientRow}
-              onPress={() => openPatient(patient.id)}>
-              <Text style={styles.patientName}>
-                {patient.firstName} {patient.lastName}
-              </Text>
-              <Text style={styles.patientText}>
-                Especie: {patient.species.name}
-              </Text>
-              <Text style={styles.patientText}>Raza: {patient.breed.name}</Text>
-            </TouchableOpacity>
-          ))
-        )}
-
-        <Button
-          mode="contained"
-          onPress={addPatient}
-          style={styles.addButton}
-          contentStyle={styles.addButtonContent}
-          icon="plus">
-          Agregar mascota
-        </Button>
       </View>
     </ScrollView>
   );
@@ -226,6 +230,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 18,
     padding: 16,
+  },
+  row: {
+    alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 18,
+  },
+  rowItem: {
+    flex: 1,
   },
   sectionHeader: {
     alignItems: 'center',
