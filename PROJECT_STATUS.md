@@ -60,6 +60,7 @@ Implemented:
 - Update: `PUT /api/tutors/:id`, full-replace, `404` if missing.
 - Duplicate RUT: `409` with `{ ok: false, message: "Ya existe un tutor con este RUT.", field: "rut" }`.
 - Duplicate email: `409` with `{ ok: false, message: "Ya existe un tutor con este correo.", field: "email" }`.
+- `addressComplement`: optional free-text field (apartment/floor/house detail), excluded from the Google Maps link.
 
 Not implemented: delete (deliberate — see Technical Decisions).
 

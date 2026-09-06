@@ -9,6 +9,7 @@ type TutorPayload = {
   region: string
   comuna: string
   streetAddress: string
+  addressComplement?: string
   email?: string
   phone: string
   rut: string
@@ -104,6 +105,28 @@ describe("Tutor and Patient API", () => {
       rut: payload.rut,
     })
     expect(response.body.data.id).toEqual(expect.any(String))
+  })
+
+  it("creates a tutor with an address complement", async () => {
+    const payload = createTutorPayload({ addressComplement: "Depto 302" })
+
+    const response = await request(app).post("/api/tutors").send(payload)
+
+    expect(response.status).toBe(201)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data).toMatchObject({
+      addressComplement: "Depto 302",
+    })
+  })
+
+  it("creates a tutor without an address complement", async () => {
+    const payload = createTutorPayload()
+
+    const response = await request(app).post("/api/tutors").send(payload)
+
+    expect(response.status).toBe(201)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data.addressComplement).toBeFalsy()
   })
 
   it("returns 400 when tutor comuna does not belong to the selected region", async () => {
@@ -682,6 +705,22 @@ describe("Tutor and Patient API", () => {
       rut: payload.rut,
       email: payload.email,
       streetAddress: "Nueva Direccion 456",
+    })
+  })
+
+  it("allows updating a tutor's address complement", async () => {
+    const payload = createTutorPayload()
+    const tutor = await createTutor(payload)
+
+    const response = await request(app)
+      .put(`/api/tutors/${tutor.id}`)
+      .send(createTutorPayload({ ...payload, addressComplement: "Casa B" }))
+
+    expect(response.status).toBe(200)
+    expect(response.body.ok).toBe(true)
+    expect(response.body.data).toMatchObject({
+      id: tutor.id,
+      addressComplement: "Casa B",
     })
   })
 

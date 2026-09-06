@@ -5,6 +5,7 @@ export type Tutor = {
   region: string;
   comuna: string;
   streetAddress: string;
+  addressComplement?: string | null;
   email?: string | null;
   phone: string;
   rut: string;
@@ -16,6 +17,7 @@ export type CreateTutorInput = {
   region: string;
   comuna: string;
   streetAddress: string;
+  addressComplement?: string;
   email?: string;
   phone: string;
   rut: string;

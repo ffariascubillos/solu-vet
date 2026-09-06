@@ -9,6 +9,7 @@ export const createTutorSchema = z
     region: z.string(),
     comuna: z.string(),
     streetAddress: z.string().min(5),
+    addressComplement: z.string().trim().optional(),
     email: z.string().email().optional(),
     phone: z.string().min(8),
     rut: z
@@ -30,6 +31,7 @@ export const updateTutorSchema = z
     region: z.string(),
     comuna: z.string(),
     streetAddress: z.string().min(5),
+    addressComplement: z.string().trim().optional(),
     email: z.string().email().optional(),
     phone: z.string().min(8),
     rut: z

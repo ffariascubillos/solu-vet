@@ -139,6 +139,9 @@ export default function TutorDetailScreen() {
             Correo: {tutor.email || 'No registrado'}
           </Text>
           <Text style={styles.text}>Dirección: {formatTutorAddress(tutor)}</Text>
+          {tutor.addressComplement ? (
+            <Text style={styles.text}>Complemento: {tutor.addressComplement}</Text>
+          ) : null}
 
           <TouchableOpacity style={styles.mapButton} onPress={openMaps}>
             <Text style={styles.mapButtonText}>Ver dirección en Maps</Text>

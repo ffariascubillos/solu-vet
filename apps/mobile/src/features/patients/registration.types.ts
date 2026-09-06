@@ -6,6 +6,7 @@ export type TutorForm = {
   region: string;
   comuna: string;
   streetAddress: string;
+  addressComplement: string;
   email: string;
   phone: string;
   rut: string;
@@ -28,6 +29,7 @@ export const initialTutorForm: TutorForm = {
   region: '',
   comuna: '',
   streetAddress: '',
+  addressComplement: '',
   email: '',
   phone: '',
   rut: '',
@@ -49,6 +51,7 @@ export function toTutorFormState(tutor: Tutor): TutorForm {
     region: tutor.region,
     comuna: tutor.comuna,
     streetAddress: tutor.streetAddress,
+    addressComplement: tutor.addressComplement ?? '',
     email: tutor.email ?? '',
     phone: tutor.phone,
     rut: tutor.rut,

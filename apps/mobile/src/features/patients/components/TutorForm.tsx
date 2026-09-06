@@ -100,6 +100,14 @@ export function TutorForm({ form, fieldErrors, onChangeField }: TutorFormProps) 
           onChangeText={(value) => onChangeField('streetAddress', value)}
         />
 
+        <TextInput
+          style={styles.input}
+          label="Complemento (Casa, Depto, Piso, etc.)"
+          mode="outlined"
+          value={form.addressComplement}
+          onChangeText={(value) => onChangeField('addressComplement', value)}
+        />
+
         <View>
           <TextInput
             style={styles.input}

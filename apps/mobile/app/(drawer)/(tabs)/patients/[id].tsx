@@ -135,6 +135,11 @@ export default function PatientDetailScreen() {
           <Text style={styles.text}>
             Dirección: {formatTutorAddress(patient.tutor)}
           </Text>
+          {patient.tutor.addressComplement ? (
+            <Text style={styles.text}>
+              Complemento: {patient.tutor.addressComplement}
+            </Text>
+          ) : null}
           <Text style={styles.text}>Teléfono: {patient.tutor.phone}</Text>
           <Text style={styles.text}>
             Correo: {patient.tutor.email || "No registrado"}

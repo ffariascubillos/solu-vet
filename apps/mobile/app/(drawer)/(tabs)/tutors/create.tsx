@@ -55,6 +55,7 @@ export default function CreateTutorScreen() {
       region: tutorForm.region,
       comuna: tutorForm.comuna,
       streetAddress: tutorForm.streetAddress.trim(),
+      addressComplement: tutorForm.addressComplement.trim() || undefined,
       email: tutorForm.email.trim() || undefined,
       phone: tutorForm.phone.trim(),
       rut: normalizeRut(tutorForm.rut),
