@@ -1,13 +1,30 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Veterinary practice management system (MVP). See CLAUDE.md at the repo root for
+  the full stack, architecture, commands and rules — this is only the subset that
+  generated artifacts must respect.
+
+  Domain: the product serves veterinary clinics, veterinary hospitals, home-visit
+  veterinarians and mixed workflows. Consultations are location-agnostic — never
+  assume a consultation happens at the patient's home.
+
+  Stack: npm workspaces monorepo. apps/api is Express + TypeScript + Zod +
+  Prisma 7 (@prisma/adapter-pg, PostgreSQL), with domain modules under
+  src/modules/<entity>/ as *.controller.ts / *.routes.ts / *.schemas.ts.
+  apps/mobile is Expo Router + React Native + Axios, with feature logic under
+  src/features/<entity>/.
+
+  Language rule: backend and internal contracts in English only (Prisma models,
+  tables, columns, API routes, TypeScript types, functions, and this
+  documentation). User-facing mobile UI text in Spanish only. Backend enum values
+  stay English and are mapped to Spanish labels in the presentation layer — never
+  surface MALE, STERILIZED, etc. directly in the UI.
+
+  Target: Android phones and tablets first, responsive web where Expo allows it.
+  Avoid desktop-first layouts, premature optimization and unnecessary libraries.
+
+  API response shape is always { ok: boolean, data?, message?, field?, errors? }.
 
 # Per-artifact rules (optional)
 # Add custom rules for specific artifacts.

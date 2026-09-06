@@ -37,7 +37,7 @@ npm run lint -w apps/mobile
 
 ## Project Docs
 
-- `AGENTS.md`: project rules and working instructions.
+- `CLAUDE.md`: project rules, architecture, and working instructions.
 - `PROJECT_STATUS.md`: current implementation status and risks.
 - `ROADMAP.md`: product phases and planned work.
 - `TASKS.md`: active and next tasks.

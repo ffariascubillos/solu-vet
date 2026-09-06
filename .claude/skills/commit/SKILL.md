@@ -57,6 +57,8 @@ Estandariza los mensajes y el proceso de commit de este repositorio. Esta skill 
    La IP hardcodeada impedía correr la app en otra red o dispositivo sin editar código fuente.
    ```
 
-   Además del contenido anterior (que es exclusivo del cuerpo del mensaje), sigue aplicando las reglas generales del harness para crear commits: crear un commit nuevo en vez de amend, no usar `--no-verify` ni `--no-gpg-sign` salvo pedido explícito, y agregar como trailer final `Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>`.
+   Además del contenido anterior (que es exclusivo del cuerpo del mensaje), sigue aplicando las reglas generales del harness para crear commits: crear un commit nuevo en vez de amend, no usar `--no-verify` ni `--no-gpg-sign` salvo pedido explícito, y agregar como trailer final `Co-Authored-By: <modelo de la sesión actual> <noreply@anthropic.com>`.
+
+   El trailer debe nombrar el modelo que realmente está ejecutando la sesión (por ejemplo `Claude Opus 5`), no un modelo fijo. Si el harness indica un nombre de modelo, usa ese.
 
 5. Muéstrale el mensaje propuesto al usuario, ejecuta `git commit -m "..."` y confirma el resultado con `git status`.
