@@ -56,17 +56,6 @@ export default function DrawerLayout() {
           ),
         }}
       />
-
-      <Drawer.Screen
-        name="settings"
-        options={{
-          drawerLabel: 'Configuración',
-          title: 'Ajustes',
-          drawerIcon: ({ color }) => (
-            <Ionicons name="settings-outline" size={22} color={color} />
-          ),
-        }}
-      />
     </Drawer>
   );
 }

@@ -20,8 +20,6 @@ Basic authentication is the priority: it does not exist yet, and it blocks the a
 ### Mobile
 
 - [ ] Manually verify the Tutor/Patient edit screens on an Android phone via Expo Go: edit success, duplicate rut/email errors, species/breed cascade reset, validation errors.
-- [ ] Verify the Patient/Tutor detail tablet layout on a physical Android tablet. It was only ever verified on web viewports at 900px and 390px.
-- [ ] Fix `settings.tsx` (reachable from the drawer menu): it renders a duplicate of the "Guía rápida" content instead of an actual settings screen.
 
 ### Testing
 
