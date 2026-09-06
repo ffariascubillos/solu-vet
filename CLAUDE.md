@@ -16,6 +16,12 @@ Documentos del proyecto y cuándo leerlos:
 - `DAILY/` — solo para reconstruir el contexto de una sesión anterior.
 - `MANUAL/` — guías operativas para el usuario final, no reglas para ti.
 
+## Flujo de trabajo
+
+El agente principal actúa como orquestador y arquitecto: crea el plan, lo revisa con el usuario (Felipin), y delega la implementación al subagente **`coder`** y el testing al subagente **`tester`** — no implementa código directamente salvo que Felipin pida explícitamente una tarea puntual y acotada sin pasar por el ciclo completo.
+
+Antes de iniciar una tarea de desarrollo, lee `workflow.md` — ahí está el ciclo completo (roles, pasos, bifurcaciones de feedback) y el diagrama del flujo. Es la única fuente del proceso; no lo repitas aquí.
+
 ## Stack
 
 - **Mobile**: React Native + Expo + Expo Router + TypeScript + Axios, con `react-native-paper` para componentes de UI.
