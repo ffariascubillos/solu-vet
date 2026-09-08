@@ -73,7 +73,26 @@ packages/
 
 ### Mobile (`apps/mobile`)
 
-- Rutas con Expo Router en `app/(drawer)/(tabs)/...`; lógica de features en `src/features/<entidad>/` (componentes, servicio, tipos, validación).
+- Arquitectura feature-based. Estructura de `src/`:
+  ```
+  src/
+  ├── app/                  # Rutas (Expo Router)
+  ├── components/           # Componentes UI universales sin lógica de negocio (Button, Input, Modal)
+  ├── features/             # Módulos aislados por función de negocio
+  │   └── <entidad>/
+  │       ├── components/   # UI específica del feature
+  │       ├── hooks/        # Custom hooks del feature
+  │       ├── api/          # Peticiones a la API del feature
+  │       ├── types/        # Interfaces TypeScript del feature
+  │       └── index.ts      # Punto de entrada expuesto a la app
+  ├── services/             # Instancias globales (Axios, etc.)
+  ├── hooks/                # Hooks universales sin relación a un feature (ej. useIsTablet)
+  ├── utils/                # Helpers, formateadores
+  └── types/                # Tipos globales
+  ```
+- Un hook, componente o tipo vive dentro de `features/<entidad>/` si solo lo usa ese feature; sube a la carpeta global equivalente (`components/`, `hooks/`, `types/`) recién cuando lo empieza a usar más de un feature.
+- Rutas con Expo Router en `app/(drawer)/(tabs)/...`; lógica de features en `src/features/<entidad>/`.
+- Esta estructura aplica a partir de ahora: no migres código existente solo por prolijidad, pero organiza así todo archivo nuevo y reordena el de un feature que ya estés tocando por otra razón.
 - `src/services/api.ts` crea el cliente Axios; la `baseURL` viene de `EXPO_PUBLIC_API_URL`, definida en `apps/mobile/.env` (no versionado — `apps/mobile/.env.example` documenta los formatos para LAN, emulador Android y web/localhost). Si la variable falta, el módulo lanza un error explícito al arrancar en vez de apuntar silenciosamente a la red equivocada.
 - El registro de Tutor y Patient son pantallas separadas: se registra el Tutor primero y termina en el detalle del Tutor; agregar un Patient se hace desde el detalle del Tutor reutilizando la pantalla de registro con el Tutor preseleccionado (`patients/create?tutorId=...`).
 
@@ -106,3 +125,5 @@ No dupliques el mismo hecho en varios archivos. Cada dato vive en un solo lugar,
 - No reescribas módulos que funcionan sin justificación, no renombres entidades de base de datos sin aprobación, no cambies arquitectura sin justificación.
 - Si el usuario pide trabajo solo de documentación, no modifiques código de aplicación.
 - Cambios pequeños y acotados; verifica con los comandos de tipos/tests/lint correspondientes cuando sea posible.
+- Lee un archivo con Read justo antes de editarlo, siempre — incluso si ya lo leíste antes en la misma sesión o en un intento anterior. Felipin modifica los archivos entre tus cambios, así que una versión recordada puede estar desactualizada. Esto aplica sobre todo al volver por feedback o por una nueva tarea sobre el mismo archivo.
+- Escribe la mínima cantidad de código que cumpla el requisito; ante la duda entre una solución simple y una más "robusta" no pedida, usa la simple. No agregues comentarios al código salvo que el usuario lo pida explícitamente.
