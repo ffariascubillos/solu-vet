@@ -36,7 +36,6 @@ Decisions taken before OpenSpec was adopted, or outside of a change. A decision 
 - `Tutor.address` (free text) was replaced with required `region`, `comuna` and `streetAddress`. The free-text field produced typos and let the "Ver dirección en Maps" link open Google Maps in the wrong country.
 - Unlike Species/Breed, `region`/`comuna` are a **static in-code catalog** (`apps/api/src/data/chile-regions.ts`, 16 regions / 346 comunas, from SUBDERE's Código Único Territorial), not reference tables: Chile's political-administrative division does not need an admin maintainer. It is exposed read-only via `GET /api/regions` so mobile consumes the same source instead of duplicating it, and the Tutor schemas validate that the comuna belongs to the selected region with a Zod `.refine()` (no DB lookup, since it is not a foreign key).
 - The Maps link always builds its query as `streetAddress, comuna, region, Chile`, shared through `formatTutorAddress`/`buildTutorMapsUrl` in `apps/mobile/src/features/patients/tutor-address.ts` so both detail screens build it identically.
-- Google Places Autocomplete (exact-pin precision for home visits) was evaluated and deferred: it needs a Google Cloud project, billing, an API key proxied through the backend, and a new mobile dependency. Tracked in `ROADMAP.md` under Future Platform Features.
 
 ### No delete endpoints for Tutor or Patient
 

@@ -83,7 +83,6 @@
 
 ## Future Platform Features
 
-- Evaluate Google Places Autocomplete (restricted to Chile) for exact-pin address precision on home visits, as a follow-up to the Region/Comuna structured address. Requires a Google Cloud project, billing, an API key proxied through the backend, and a new mobile dependency — deferred until there is budget/infra for it.
 - Multi-user accounts.
 - Veterinarian profiles.
 - Cloud file storage.

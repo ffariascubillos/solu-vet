@@ -15,7 +15,6 @@ Basic authentication is the priority: it does not exist yet, and it blocks the a
 - [ ] Add basic authentication. No auth flow exists today; anyone with the API URL has full access to Tutor and Patient data.
 - [ ] Normalize validation error responses.
 - [ ] Add an admin-only CRUD maintainer for species and breeds (create, search, update, delete). Depends on authentication with roles, since there is no way to restrict anything to administrators yet.
-- [ ] Evaluate Google Places Autocomplete (restricted to Chile) for exact-pin address precision on home visits. Deferred: needs a Google Cloud project, billing, an API key proxied through the backend, and a new mobile dependency.
 
 ### Mobile
 
