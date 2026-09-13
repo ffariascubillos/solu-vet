@@ -1,3 +1,5 @@
+import { isValidEmail } from '../../utils/validation';
+
 import type { PatientForm, TutorForm } from './registration.types';
 
 export function normalizeRut(rut: string) {
@@ -25,10 +27,6 @@ export function isValidRut(rut: string) {
     remainder === 11 ? '0' : remainder === 10 ? 'K' : String(remainder);
 
   return checkDigit === expectedDigit;
-}
-
-export function isValidEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 export function validateTutorForm(tutorForm: TutorForm) {
