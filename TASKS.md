@@ -4,17 +4,14 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 ## IN PROGRESS
 
-- None.
+- Authentication + multi-tenancy (`openspec/changes/add-auth-multitenancy/`): planning complete and validated (proposal, 4 capability specs, design, tasks). Mobile Login/Register screens mocked up (`apps/mobile/src/features/auth/`, `apps/mobile/app/(auth)/`), no backend wiring yet. Next: backend implementation per `tasks.md` sections 1-9, phase by phase.
 
 ## NEXT
 
 ### Backend
 
-Basic authentication is the priority: it does not exist yet, and it blocks the admin-only Species/Breed maintainer.
-
-- [ ] Add basic authentication. No auth flow exists today; anyone with the API URL has full access to Tutor and Patient data.
 - [ ] Normalize validation error responses.
-- [ ] Add an admin-only CRUD maintainer for species and breeds (create, search, update, delete). Depends on authentication with roles, since there is no way to restrict anything to administrators yet.
+- [ ] Add an admin-only CRUD maintainer for species and breeds (create, search, update, delete). Depends on authentication with roles — tracked in the in-progress auth change above.
 
 ### Mobile
 
