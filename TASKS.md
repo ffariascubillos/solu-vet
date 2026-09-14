@@ -4,7 +4,7 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 ## IN PROGRESS
 
-- Authentication + multi-tenancy (`openspec/changes/add-auth-multitenancy/`): planning complete and validated (proposal, 4 capability specs, design, tasks). Mobile Login/Register screens mocked up (`apps/mobile/src/features/auth/`, `apps/mobile/app/(auth)/`), no backend wiring yet. Next: backend implementation per `tasks.md` sections 1-9, phase by phase.
+- Authentication + multi-tenancy (`openspec/changes/add-auth-multitenancy/`): planning complete and validated (proposal, 4 capability specs, design, tasks). Mobile Login/Register screens mocked up (`apps/mobile/src/features/auth/`, `apps/mobile/app/(auth)/`), no backend wiring yet. Section 1 (Dependencies) done: `jsonwebtoken`/`bcryptjs` in `apps/api`, `EmailSender` interface with a Resend-backed implementation (`apps/api/src/lib/email-sender.ts`, Resend confirmed as the email provider), `expo-secure-store` in `apps/mobile`. Next: Section 2 (Prisma schema and migration), phase by phase.
 
 ## NEXT
 

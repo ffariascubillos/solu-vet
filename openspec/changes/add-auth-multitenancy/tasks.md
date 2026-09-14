@@ -1,8 +1,8 @@
 ## 1. Dependencies
 
-- [ ] 1.1 Add `jsonwebtoken`, `bcryptjs` and their `@types/*` packages to `apps/api/package.json`; verify `npm exec -w apps/api -- tsc --noEmit` succeeds with the new imports available.
-- [ ] 1.2 Add the Resend SDK (or the confirmed alternative, per design.md Decision 5) to `apps/api/package.json`, gated behind the `EmailSender` interface described in design.md; verify the package installs and a placeholder `sendActivationEmail` call type-checks.
-- [ ] 1.3 Add `expo-secure-store` to `apps/mobile/package.json`; verify `npx expo install expo-secure-store` completes without dependency conflicts.
+- [x] 1.1 Add `jsonwebtoken`, `bcryptjs` and their `@types/*` packages to `apps/api/package.json`; verify `npm exec -w apps/api -- tsc --noEmit` succeeds with the new imports available.
+- [x] 1.2 Add the Resend SDK (or the confirmed alternative, per design.md Decision 5) to `apps/api/package.json`, gated behind the `EmailSender` interface described in design.md; verify the package installs and a placeholder `sendActivationEmail` call type-checks.
+- [x] 1.3 Add `expo-secure-store` to `apps/mobile/package.json`; verify `npx expo install expo-secure-store` completes without dependency conflicts.
 
 ## 2. Prisma schema and migration
 
