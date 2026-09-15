@@ -4,7 +4,7 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 ## IN PROGRESS
 
-- Authentication + multi-tenancy (`openspec/changes/add-auth-multitenancy/`): planning complete and validated (proposal, 4 capability specs, design, tasks). Mobile Login/Register screens mocked up (`apps/mobile/src/features/auth/`, `apps/mobile/app/(auth)/`), no backend wiring yet. Section 1 (Dependencies) done: `jsonwebtoken`/`bcryptjs` in `apps/api`, `EmailSender` interface with a Resend-backed implementation (`apps/api/src/lib/email-sender.ts`, Resend confirmed as the email provider), `expo-secure-store` in `apps/mobile`. Next: Section 2 (Prisma schema and migration), phase by phase.
+- Authentication + multi-tenancy (`openspec/changes/add-auth-multitenancy/`): planning complete and validated (proposal, 4 capability specs, design, tasks). Mobile Login/Register screens mocked up (`apps/mobile/src/features/auth/`, `apps/mobile/app/(auth)/`), no backend wiring yet. Section 1 (Dependencies) done. Section 2 (Prisma schema and migration) done: `Organization`, rewritten `User` (`role`, `organizationId`), `RefreshToken`, `UserInvitation`, `PasswordResetToken` added; `Tutor`/`Patient`/`Consultation` now require `organizationId`, and `Tutor.rut`/`Tutor.email` are unique per organization. Dev/test tables were truncated instead of backfilled (no real data existed yet). **Known state: `apps/api` currently fails `tsc --noEmit` and its test suite**, because `tutors`/`patients`/`consultations` controllers don't set/filter `organizationId` yet — expected per `design.md`'s migration plan, fixed by Sections 6-8. Felipin approved leaving `master` red until then rather than reordering the phases. Next: Section 3 (Auth infrastructure), phase by phase.
 
 ## NEXT
 

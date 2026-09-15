@@ -6,15 +6,15 @@
 
 ## 2. Prisma schema and migration
 
-- [ ] 2.1 Add `Organization` model (`id`, `name`, `type: OrganizationType`, `trialEndsAt`, `subscriptionStatus: SubscriptionStatus`, `createdAt`, `updatedAt`) and the `OrganizationType`/`SubscriptionStatus` enums to `apps/api/prisma/schema.prisma`, per `specs/organizations/spec.md`.
-- [ ] 2.2 Rewrite `User` model: add `role: UserRole` (enum with only `OWNER` for now) and `organizationId` (relation to `Organization`); verify the model compiles with `npm run prisma:generate -w apps/api`.
-- [ ] 2.3 Add nullable `organizationId` to `Tutor`, `Patient`, `Consultation` (relation to `Organization`) in a first migration step, per design.md's Migration Plan step 2; verify `npm run prisma:migrate -w apps/api` creates and applies the migration cleanly against the dev database.
-- [ ] 2.4 Seed or backfill development/test data with a placeholder `Organization` so existing local rows are not orphaned, per design.md's Migration Plan step 3; verify no `Tutor`/`Patient`/`Consultation` row has a null `organizationId` afterward.
-- [ ] 2.5 Make `organizationId` required and add `@@index([organizationId])` on `Tutor`, `Patient`, `Consultation` in a follow-up migration; verify the migration applies without constraint violations against the backfilled data.
-- [ ] 2.6 Replace `Tutor.rut`/`Tutor.email` global `@unique` with `@@unique([rut, organizationId])` / `@@unique([email, organizationId])` in the same migration as 2.5; verify by inserting two tutors with the same RUT in two different organizations directly via Prisma Studio or a script, confirming both succeed.
-- [ ] 2.7 Add a new `RefreshToken` model (`id`, `userId`, `tokenHash`, `expiresAt`, `revokedAt`, `replacedByTokenId`, `createdAt`) per design.md Decision 1; verify it migrates cleanly and is indexed on `userId`.
-- [ ] 2.8 Add a new `UserInvitation` model (`id`, `email`, `organizationId`, `role`, `tokenHash`, `expiresAt`, `acceptedAt`, `invitedByUserId`, `createdAt`) per `specs/user-invitations/spec.md`; verify it migrates cleanly.
-- [ ] 2.9 Add a new `PasswordResetToken` model (`id`, `userId`, `tokenHash`, `expiresAt`, `usedAt`, `createdAt`) per design.md Decision 7; verify it migrates cleanly and is indexed on `userId`.
+- [x] 2.1 Add `Organization` model (`id`, `name`, `type: OrganizationType`, `trialEndsAt`, `subscriptionStatus: SubscriptionStatus`, `createdAt`, `updatedAt`) and the `OrganizationType`/`SubscriptionStatus` enums to `apps/api/prisma/schema.prisma`, per `specs/organizations/spec.md`.
+- [x] 2.2 Rewrite `User` model: add `role: UserRole` (enum with only `OWNER` for now) and `organizationId` (relation to `Organization`); verify the model compiles with `npm run prisma:generate -w apps/api`.
+- [x] 2.3 Add nullable `organizationId` to `Tutor`, `Patient`, `Consultation` (relation to `Organization`) in a first migration step, per design.md's Migration Plan step 2; verify `npm run prisma:migrate -w apps/api` creates and applies the migration cleanly against the dev database.
+- [x] 2.4 Seed or backfill development/test data with a placeholder `Organization` so existing local rows are not orphaned, per design.md's Migration Plan step 3; verify no `Tutor`/`Patient`/`Consultation` row has a null `organizationId` afterward. (Done as: truncated `Tutor`/`Patient`/`Consultation` and dependents in dev and `solu_vet_test` instead of backfilling — no production data existed yet, per Felipin's call during this phase.)
+- [x] 2.5 Make `organizationId` required and add `@@index([organizationId])` on `Tutor`, `Patient`, `Consultation` in a follow-up migration; verify the migration applies without constraint violations against the backfilled data.
+- [x] 2.6 Replace `Tutor.rut`/`Tutor.email` global `@unique` with `@@unique([rut, organizationId])` / `@@unique([email, organizationId])` in the same migration as 2.5; verify by inserting two tutors with the same RUT in two different organizations directly via Prisma Studio or a script, confirming both succeed.
+- [x] 2.7 Add a new `RefreshToken` model (`id`, `userId`, `tokenHash`, `expiresAt`, `revokedAt`, `replacedByTokenId`, `createdAt`) per design.md Decision 1; verify it migrates cleanly and is indexed on `userId`.
+- [x] 2.8 Add a new `UserInvitation` model (`id`, `email`, `organizationId`, `role`, `tokenHash`, `expiresAt`, `acceptedAt`, `invitedByUserId`, `createdAt`) per `specs/user-invitations/spec.md`; verify it migrates cleanly.
+- [x] 2.9 Add a new `PasswordResetToken` model (`id`, `userId`, `tokenHash`, `expiresAt`, `usedAt`, `createdAt`) per design.md Decision 7; verify it migrates cleanly and is indexed on `userId`.
 
 ## 3. Auth infrastructure
 
