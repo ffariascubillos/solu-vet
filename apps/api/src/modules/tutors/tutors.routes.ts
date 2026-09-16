@@ -1,4 +1,5 @@
 import { Router } from "express"
+import { requireAuth } from "../../middlewares/require-auth.js"
 import {
   createTutor,
   getTutorById,
@@ -8,6 +9,8 @@ import {
 } from "./tutors.controller.js"
 
 export const tutorsRouter = Router()
+
+tutorsRouter.use(requireAuth)
 
 tutorsRouter.post("/", createTutor)
 tutorsRouter.get("/search", searchTutors)

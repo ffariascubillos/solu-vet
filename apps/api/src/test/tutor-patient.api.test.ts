@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import request from "supertest"
 import { afterAll, beforeEach, describe, expect, it } from "vitest"
 import { app } from "../app.js"
@@ -64,14 +65,45 @@ const createPatientPayload = async (
   }
 }
 
+const independentOwnerPayload = (overrides: Record<string, unknown> = {}) => ({
+  organizationType: "INDEPENDENT",
+  email: `tutor-patient-test-${randomUUID()}@example.com`,
+  password: "supersecret123",
+  name: "Vet Owner",
+  ...overrides,
+})
+
+async function registerOwner(overrides: Record<string, unknown> = {}) {
+  const response = await request(app)
+    .post("/api/auth/register")
+    .send(independentOwnerPayload(overrides))
+
+  return response.body.data as {
+    accessToken: string
+    refreshToken: string
+    user: { id: string; email: string; name: string; role: string }
+    organization: { id: string; name: string; type: string }
+  }
+}
+
 async function cleanDatabase() {
   await prisma.patient.deleteMany()
   await prisma.tutor.deleteMany()
+  await prisma.refreshToken.deleteMany()
+  await prisma.user.deleteMany()
+  await prisma.organization.deleteMany()
 }
 
-async function createTutor(overrides: Partial<TutorPayload> = {}) {
+let ownerAToken: string
+let organizationAId: string
+
+async function createTutor(
+  overrides: Partial<TutorPayload> = {},
+  token: string = ownerAToken,
+) {
   const response = await request(app)
     .post("/api/tutors")
+    .set("Authorization", `Bearer ${token}`)
     .send(createTutorPayload(overrides))
 
   return response.body.data as { id: string }
@@ -80,6 +112,9 @@ async function createTutor(overrides: Partial<TutorPayload> = {}) {
 describe("Tutor and Patient API", () => {
   beforeEach(async () => {
     await cleanDatabase()
+    const ownerA = await registerOwner()
+    ownerAToken = ownerA.accessToken
+    organizationAId = ownerA.organization.id
   })
 
   afterAll(async () => {
@@ -90,7 +125,10 @@ describe("Tutor and Patient API", () => {
   it("creates a tutor", async () => {
     const payload = createTutorPayload()
 
-    const response = await request(app).post("/api/tutors").send(payload)
+    const response = await request(app)
+      .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
+      .send(payload)
 
     expect(response.status).toBe(201)
     expect(response.body.ok).toBe(true)
@@ -110,7 +148,10 @@ describe("Tutor and Patient API", () => {
   it("creates a tutor with an address complement", async () => {
     const payload = createTutorPayload({ addressComplement: "Depto 302" })
 
-    const response = await request(app).post("/api/tutors").send(payload)
+    const response = await request(app)
+      .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
+      .send(payload)
 
     expect(response.status).toBe(201)
     expect(response.body.ok).toBe(true)
@@ -122,7 +163,10 @@ describe("Tutor and Patient API", () => {
   it("creates a tutor without an address complement", async () => {
     const payload = createTutorPayload()
 
-    const response = await request(app).post("/api/tutors").send(payload)
+    const response = await request(app)
+      .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
+      .send(payload)
 
     expect(response.status).toBe(201)
     expect(response.body.ok).toBe(true)
@@ -132,6 +176,7 @@ describe("Tutor and Patient API", () => {
   it("returns 400 when tutor comuna does not belong to the selected region", async () => {
     const response = await request(app)
       .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           region: "Metropolitana de Santiago",
@@ -153,6 +198,7 @@ describe("Tutor and Patient API", () => {
   it("returns 400 when tutor region does not exist", async () => {
     const response = await request(app)
       .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           region: "Región Inventada",
@@ -174,6 +220,7 @@ describe("Tutor and Patient API", () => {
   it("normalizes tutor rut before creating a tutor", async () => {
     const response = await request(app)
       .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           rut: "12.345.678-5",
@@ -190,6 +237,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           email: "different.email@example.com",
@@ -209,6 +257,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           rut: "11111111-1",
@@ -226,6 +275,7 @@ describe("Tutor and Patient API", () => {
   it("returns 400 when tutor rut has an invalid check digit", async () => {
     const response = await request(app)
       .post("/api/tutors")
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           rut: "12345678-0",
@@ -551,6 +601,7 @@ describe("Tutor and Patient API", () => {
     const tutorNameResponse = await request(app)
       .get("/api/tutors/search")
       .query({ q: "Rojas" })
+      .set("Authorization", `Bearer ${ownerAToken}`)
 
     expect(tutorNameResponse.status).toBe(200)
     expect(tutorNameResponse.body.ok).toBe(true)
@@ -565,6 +616,7 @@ describe("Tutor and Patient API", () => {
     const tutorRutResponse = await request(app)
       .get("/api/tutors/search")
       .query({ q: "22222222" })
+      .set("Authorization", `Bearer ${ownerAToken}`)
 
     expect(tutorRutResponse.status).toBe(200)
     expect(tutorRutResponse.body.ok).toBe(true)
@@ -587,7 +639,9 @@ describe("Tutor and Patient API", () => {
       .post("/api/patients")
       .send(await createPatientPayload(tutor.id, { firstName: "Nala" }))
 
-    const response = await request(app).get(`/api/tutors/${tutor.id}`)
+    const response = await request(app)
+      .get(`/api/tutors/${tutor.id}`)
+      .set("Authorization", `Bearer ${ownerAToken}`)
 
     expect(response.status).toBe(200)
     expect(response.body.ok).toBe(true)
@@ -605,7 +659,9 @@ describe("Tutor and Patient API", () => {
   })
 
   it("returns 404 when tutor detail is missing", async () => {
-    const response = await request(app).get("/api/tutors/missing-tutor-id")
+    const response = await request(app)
+      .get("/api/tutors/missing-tutor-id")
+      .set("Authorization", `Bearer ${ownerAToken}`)
 
     expect(response.status).toBe(404)
     expect(response.body).toMatchObject({
@@ -619,6 +675,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .put(`/api/tutors/${tutor.id}`)
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           firstName: "Andrea",
@@ -638,6 +695,7 @@ describe("Tutor and Patient API", () => {
   it("returns 404 when updating a missing tutor", async () => {
     const response = await request(app)
       .put("/api/tutors/missing-tutor-id")
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(createTutorPayload())
 
     expect(response.status).toBe(404)
@@ -656,6 +714,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .put(`/api/tutors/${tutorA.id}`)
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(createTutorPayload({ rut: "22222222-2" }))
 
     expect(response.status).toBe(409)
@@ -675,6 +734,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .put(`/api/tutors/${tutorA.id}`)
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           rut: "11111111-1",
@@ -696,6 +756,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .put(`/api/tutors/${tutor.id}`)
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(createTutorPayload({ ...payload, streetAddress: "Nueva Direccion 456" }))
 
     expect(response.status).toBe(200)
@@ -714,6 +775,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .put(`/api/tutors/${tutor.id}`)
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(createTutorPayload({ ...payload, addressComplement: "Casa B" }))
 
     expect(response.status).toBe(200)
@@ -729,6 +791,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .put(`/api/tutors/${tutor.id}`)
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(
         createTutorPayload({
           region: "Metropolitana de Santiago",
@@ -748,6 +811,7 @@ describe("Tutor and Patient API", () => {
 
     const response = await request(app)
       .put(`/api/tutors/${tutor.id}`)
+      .set("Authorization", `Bearer ${ownerAToken}`)
       .send(createTutorPayload({ rut: "12345678-0" }))
 
     expect(response.status).toBe(400)
@@ -758,7 +822,9 @@ describe("Tutor and Patient API", () => {
   })
 
   it("returns 400 when tutor search query is missing", async () => {
-    const response = await request(app).get("/api/tutors/search")
+    const response = await request(app)
+      .get("/api/tutors/search")
+      .set("Authorization", `Bearer ${ownerAToken}`)
 
     expect(response.status).toBe(400)
     expect(response.body).toMatchObject({
@@ -849,5 +915,115 @@ describe("Tutor and Patient API", () => {
         }),
       ]),
     )
+  })
+
+  describe("tenant isolation", () => {
+    it("returns 401 for every tutor route without an Authorization header", async () => {
+      const tutor = await createTutor()
+
+      const responses = await Promise.all([
+        request(app).post("/api/tutors").send(createTutorPayload()),
+        request(app).get("/api/tutors"),
+        request(app).get("/api/tutors/search").query({ q: "Ana" }),
+        request(app).get(`/api/tutors/${tutor.id}`),
+        request(app).put(`/api/tutors/${tutor.id}`).send(createTutorPayload()),
+      ])
+
+      for (const response of responses) {
+        expect(response.status).toBe(401)
+      }
+    })
+
+    it("creates a tutor with the same rut in a different organization without conflict", async () => {
+      const ownerB = await registerOwner()
+
+      const responseA = await request(app)
+        .post("/api/tutors")
+        .set("Authorization", `Bearer ${ownerAToken}`)
+        .send(createTutorPayload())
+      const responseB = await request(app)
+        .post("/api/tutors")
+        .set("Authorization", `Bearer ${ownerB.accessToken}`)
+        .send(createTutorPayload())
+
+      expect(responseA.status).toBe(201)
+      expect(responseB.status).toBe(201)
+    })
+
+    it("returns 404 when updating a tutor from a different organization and leaves it unchanged", async () => {
+      const tutor = await createTutor()
+      const ownerB = await registerOwner()
+
+      const response = await request(app)
+        .put(`/api/tutors/${tutor.id}`)
+        .set("Authorization", `Bearer ${ownerB.accessToken}`)
+        .send(createTutorPayload({ firstName: "Hackeado" }))
+
+      expect(response.status).toBe(404)
+      expect(response.body).toMatchObject({
+        ok: false,
+        message: "Tutor not found",
+      })
+
+      const unchanged = await prisma.tutor.findUnique({
+        where: { id: tutor.id },
+      })
+      expect(unchanged?.firstName).toBe("Ana")
+    })
+
+    it("does not include tutors from other organizations when listing tutors", async () => {
+      const tutorA = await createTutor()
+      const ownerB = await registerOwner()
+      const tutorB = await createTutor(
+        { rut: "22222222-2", email: "tutorb@example.com" },
+        ownerB.accessToken,
+      )
+
+      const response = await request(app)
+        .get("/api/tutors")
+        .set("Authorization", `Bearer ${ownerAToken}`)
+
+      expect(response.status).toBe(200)
+      const ids = response.body.data.map((tutor: { id: string }) => tutor.id)
+      expect(ids).toContain(tutorA.id)
+      expect(ids).not.toContain(tutorB.id)
+    })
+
+    it("does not include tutors from other organizations in search results", async () => {
+      const ownerB = await registerOwner()
+      const tutorB = await createTutor(
+        {
+          firstName: "Camila",
+          lastName: "Rojas",
+          email: "camila.rojas.orgb@example.com",
+          rut: "22222222-2",
+        },
+        ownerB.accessToken,
+      )
+
+      const response = await request(app)
+        .get("/api/tutors/search")
+        .query({ q: "Rojas" })
+        .set("Authorization", `Bearer ${ownerAToken}`)
+
+      expect(response.status).toBe(200)
+      const ids = response.body.data.map((tutor: { id: string }) => tutor.id)
+      expect(ids).not.toContain(tutorB.id)
+    })
+
+    it("returns 404 when getting a tutor detail from a different organization", async () => {
+      const tutor = await createTutor()
+      const ownerB = await registerOwner()
+
+      const response = await request(app)
+        .get(`/api/tutors/${tutor.id}`)
+        .set("Authorization", `Bearer ${ownerB.accessToken}`)
+
+      expect(response.status).toBe(404)
+      expect(response.body).toMatchObject({
+        ok: false,
+        message: "Tutor not found",
+      })
+    })
   })
 })

@@ -4,9 +4,10 @@ import { createTutorSchema, updateTutorSchema } from "./tutors.schemas.js"
 
 export async function createTutor(req: Request, res: Response) {
   const data = createTutorSchema.parse(req.body)
+  const organizationId = req.auth!.organizationId
 
   const existingTutorByRut = await prisma.tutor.findUnique({
-    where: { rut: data.rut },
+    where: { rut_organizationId: { rut: data.rut, organizationId } },
   })
 
   if (existingTutorByRut) {
@@ -19,7 +20,7 @@ export async function createTutor(req: Request, res: Response) {
 
   if (data.email) {
     const existingTutorByEmail = await prisma.tutor.findUnique({
-      where: { email: data.email },
+      where: { email_organizationId: { email: data.email, organizationId } },
     })
 
     if (existingTutorByEmail) {
@@ -32,7 +33,7 @@ export async function createTutor(req: Request, res: Response) {
   }
 
   const tutor = await prisma.tutor.create({
-    data,
+    data: { ...data, organizationId },
   })
 
   return res.status(201).json({
@@ -44,8 +45,9 @@ export async function createTutor(req: Request, res: Response) {
 export async function updateTutor(req: Request, res: Response) {
   const id = String(req.params.id)
   const data = updateTutorSchema.parse(req.body)
+  const organizationId = req.auth!.organizationId
 
-  const existingTutor = await prisma.tutor.findUnique({ where: { id } })
+  const existingTutor = await req.prisma!.tutor.findFirst({ where: { id } })
   if (!existingTutor) {
     return res.status(404).json({
       ok: false,
@@ -54,7 +56,7 @@ export async function updateTutor(req: Request, res: Response) {
   }
 
   const tutorWithSameRut = await prisma.tutor.findUnique({
-    where: { rut: data.rut },
+    where: { rut_organizationId: { rut: data.rut, organizationId } },
   })
 
   if (tutorWithSameRut && tutorWithSameRut.id !== id) {
@@ -67,7 +69,7 @@ export async function updateTutor(req: Request, res: Response) {
 
   if (data.email) {
     const tutorWithSameEmail = await prisma.tutor.findUnique({
-      where: { email: data.email },
+      where: { email_organizationId: { email: data.email, organizationId } },
     })
 
     if (tutorWithSameEmail && tutorWithSameEmail.id !== id) {
@@ -90,8 +92,8 @@ export async function updateTutor(req: Request, res: Response) {
   })
 }
 
-export async function getTutors(_req: Request, res: Response) {
-  const tutors = await prisma.tutor.findMany({
+export async function getTutors(req: Request, res: Response) {
+  const tutors = await req.prisma!.tutor.findMany({
     orderBy: {
       createdAt: "desc",
     },
@@ -113,7 +115,7 @@ export async function searchTutors(req: Request, res: Response) {
     })
   }
 
-  const tutors = await prisma.tutor.findMany({
+  const tutors = await req.prisma!.tutor.findMany({
     where: {
       OR: [
         {
@@ -161,7 +163,7 @@ export async function searchTutors(req: Request, res: Response) {
 export async function getTutorById(req: Request, res: Response) {
   const id = String(req.params.id)
 
-  const tutor = await prisma.tutor.findUnique({
+  const tutor = await req.prisma!.tutor.findFirst({
     where: { id },
     include: {
       patients: {
