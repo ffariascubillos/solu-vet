@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto"
 import request from "supertest"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { app } from "../../app.js"
 import { prisma } from "../../lib/prisma.js"
 import { issuePasswordResetToken } from "../../lib/auth/password-reset-token.js"
+import { emailSender } from "../../lib/email/resend-email-sender.js"
+import { verifyAccessToken } from "../../lib/auth/access-token.js"
 
 const uniqueEmail = () => `auth-test-${randomUUID()}@example.com`
 
@@ -25,6 +27,7 @@ const clinicPayload = (overrides: Record<string, unknown> = {}) => ({
 })
 
 async function cleanDatabase() {
+  await prisma.userInvitation.deleteMany()
   await prisma.passwordResetToken.deleteMany()
   await prisma.refreshToken.deleteMany()
   await prisma.user.deleteMany()
@@ -44,8 +47,23 @@ async function registerUser(overrides: Record<string, unknown> = {}) {
   }
 }
 
+async function inviteAndCaptureToken(accessToken: string, email: string) {
+  const emailSpy = vi.spyOn(emailSender, "sendActivationEmail").mockResolvedValue(undefined)
+
+  const response = await request(app)
+    .post("/api/users/invite")
+    .set("Authorization", `Bearer ${accessToken}`)
+    .send({ email, role: "OWNER" })
+
+  const [, activationUrl] = emailSpy.mock.calls.at(-1) as [string, string]
+  const token = new URL(activationUrl).searchParams.get("token") as string
+
+  return { response, activationUrl, token }
+}
+
 describe("Auth API", () => {
   afterEach(async () => {
+    vi.restoreAllMocks()
     await cleanDatabase()
   })
 
@@ -400,6 +418,205 @@ describe("Auth API", () => {
         .post("/api/auth/login")
         .send({ email: payload.email, password: secondNewPassword })
       expect(loginWithSecondPassword.status).toBe(401)
+    })
+  })
+
+  describe("POST /api/auth/activate", () => {
+    it("activates a pending invited user with a valid token, marks the invitation accepted, and allows login with the new password", async () => {
+      const owner = await registerUser()
+      const invitedEmail = uniqueEmail()
+      const { response: inviteResponse, token } = await inviteAndCaptureToken(
+        owner.accessToken,
+        invitedEmail,
+      )
+      expect(inviteResponse.status).toBe(201)
+      const newPassword = "activatedpassword123"
+
+      const response = await request(app)
+        .post("/api/auth/activate")
+        .send({ token, password: newPassword })
+
+      expect(response.status).toBe(200)
+      expect(response.body).toMatchObject({ ok: true })
+
+      const invitation = await prisma.userInvitation.findFirstOrThrow({
+        where: { email: invitedEmail },
+      })
+      expect(invitation.acceptedAt).not.toBeNull()
+
+      const loginResponse = await request(app)
+        .post("/api/auth/login")
+        .send({ email: invitedEmail, password: newPassword })
+      expect(loginResponse.status).toBe(200)
+    })
+
+    it("returns 401 when trying to log in with any password before the invitation is activated", async () => {
+      const owner = await registerUser()
+      const invitedEmail = uniqueEmail()
+      await inviteAndCaptureToken(owner.accessToken, invitedEmail)
+
+      const loginResponse = await request(app)
+        .post("/api/auth/login")
+        .send({ email: invitedEmail, password: "some-random-password" })
+
+      expect(loginResponse.status).toBe(401)
+    })
+
+    it("returns 400 for an expired token and does not change the pending user's password", async () => {
+      const owner = await registerUser()
+      const invitedEmail = uniqueEmail()
+      const { token } = await inviteAndCaptureToken(owner.accessToken, invitedEmail)
+
+      await prisma.userInvitation.updateMany({
+        where: { email: invitedEmail },
+        data: { expiresAt: new Date(Date.now() - 1000) },
+      })
+
+      const response = await request(app)
+        .post("/api/auth/activate")
+        .send({ token, password: "somenewpassword123" })
+
+      expect(response.status).toBe(400)
+      expect(response.body).toMatchObject({
+        ok: false,
+        message: "El enlace no es válido o ya expiró.",
+      })
+
+      const loginResponse = await request(app)
+        .post("/api/auth/login")
+        .send({ email: invitedEmail, password: "somenewpassword123" })
+      expect(loginResponse.status).toBe(401)
+    })
+
+    it("returns 400 when the token was already used and does not allow a second activation with a different password", async () => {
+      const owner = await registerUser()
+      const invitedEmail = uniqueEmail()
+      const { token } = await inviteAndCaptureToken(owner.accessToken, invitedEmail)
+      const firstPassword = "firstactivationpwd1"
+      const secondPassword = "secondactivationpwd2"
+
+      const firstActivate = await request(app)
+        .post("/api/auth/activate")
+        .send({ token, password: firstPassword })
+      expect(firstActivate.status).toBe(200)
+
+      const secondActivate = await request(app)
+        .post("/api/auth/activate")
+        .send({ token, password: secondPassword })
+      expect(secondActivate.status).toBe(400)
+
+      const loginWithFirstPassword = await request(app)
+        .post("/api/auth/login")
+        .send({ email: invitedEmail, password: firstPassword })
+      expect(loginWithFirstPassword.status).toBe(200)
+
+      const loginWithSecondPassword = await request(app)
+        .post("/api/auth/login")
+        .send({ email: invitedEmail, password: secondPassword })
+      expect(loginWithSecondPassword.status).toBe(401)
+    })
+
+    it("returns 400 for an unknown or invented token", async () => {
+      const response = await request(app)
+        .post("/api/auth/activate")
+        .send({ token: "not-a-real-invitation-token", password: "somenewpassword123" })
+
+      expect(response.status).toBe(400)
+      expect(response.body).toMatchObject({
+        ok: false,
+        message: "El enlace no es válido o ya expiró.",
+      })
+    })
+
+    it("ignores organizationId and role sent in the body and keeps the invitation's original values", async () => {
+      const owner = await registerUser()
+      const invitedEmail = uniqueEmail()
+      const { token } = await inviteAndCaptureToken(owner.accessToken, invitedEmail)
+      const newPassword = "activatedpassword123"
+
+      const response = await request(app).post("/api/auth/activate").send({
+        token,
+        password: newPassword,
+        organizationId: "some-other-org-id",
+        role: "SOMETHING_ELSE",
+      })
+
+      expect(response.status).toBe(200)
+
+      const loginResponse = await request(app)
+        .post("/api/auth/login")
+        .send({ email: invitedEmail, password: newPassword })
+
+      expect(loginResponse.status).toBe(200)
+      expect(loginResponse.body.data.organization.id).toBe(owner.organization.id)
+      expect(loginResponse.body.data.user.role).toBe("OWNER")
+
+      const decoded = verifyAccessToken(loginResponse.body.data.accessToken)
+      expect(decoded.organizationId).toBe(owner.organization.id)
+      expect(decoded.role).toBe("OWNER")
+    })
+
+    it("rolls back acceptedAt when activation fails mid-transaction, leaving the invitation usable for inspection but still not accepted", async () => {
+      const owner = await registerUser()
+      const invitedEmail = uniqueEmail()
+      const { token } = await inviteAndCaptureToken(owner.accessToken, invitedEmail)
+
+      await prisma.user.delete({ where: { email: invitedEmail } })
+
+      const response = await request(app)
+        .post("/api/auth/activate")
+        .send({ token, password: "somenewpassword123" })
+
+      expect(response.status).toBeGreaterThanOrEqual(400)
+
+      const invitation = await prisma.userInvitation.findFirstOrThrow({
+        where: { email: invitedEmail },
+      })
+      expect(invitation.acceptedAt).toBeNull()
+    })
+  })
+
+  describe("Invitation activation end-to-end flow", () => {
+    it("registers an owner, invites a user, activates the invitation, and logs in with the correct organization and role", async () => {
+      const ownerPayload = independentPayload()
+      const registerResponse = await request(app)
+        .post("/api/auth/register")
+        .send(ownerPayload)
+      const owner = registerResponse.body.data as {
+        accessToken: string
+        organization: { id: string }
+      }
+
+      const loginResponse = await request(app)
+        .post("/api/auth/login")
+        .send({ email: ownerPayload.email, password: ownerPayload.password })
+      expect(loginResponse.status).toBe(200)
+      const ownerAccessToken = loginResponse.body.data.accessToken as string
+
+      const invitedEmail = uniqueEmail()
+      const { response: inviteResponse, token } = await inviteAndCaptureToken(
+        ownerAccessToken,
+        invitedEmail,
+      )
+      expect(inviteResponse.status).toBe(201)
+
+      const newPassword = "brandnewaccountpwd1"
+      const activateResponse = await request(app)
+        .post("/api/auth/activate")
+        .send({ token, password: newPassword })
+      expect(activateResponse.status).toBe(200)
+
+      const invitedLoginResponse = await request(app)
+        .post("/api/auth/login")
+        .send({ email: invitedEmail, password: newPassword })
+
+      expect(invitedLoginResponse.status).toBe(200)
+      expect(invitedLoginResponse.body.data.organization.id).toBe(owner.organization.id)
+      expect(invitedLoginResponse.body.data.user.role).toBe("OWNER")
+
+      const decoded = verifyAccessToken(invitedLoginResponse.body.data.accessToken)
+      expect(decoded.organizationId).toBe(owner.organization.id)
+      expect(decoded.role).toBe("OWNER")
     })
   })
 })

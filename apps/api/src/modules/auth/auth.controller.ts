@@ -15,6 +15,8 @@ import {
   PasswordResetTokenError,
 } from "../../lib/auth/password-reset-token.js"
 import { emailSender } from "../../lib/email/resend-email-sender.js"
+import { activateInvitation, InvitationTokenError } from "../../lib/auth/invitation-token.js"
+import { APP_URL } from "../../lib/env.js"
 import {
   registerSchema,
   loginSchema,
@@ -22,15 +24,8 @@ import {
   logoutSchema,
   passwordResetRequestSchema,
   passwordResetConfirmSchema,
+  activateSchema,
 } from "./auth.schemas.js"
-
-if (!process.env.APP_URL) {
-  throw new Error(
-    "APP_URL no está definida. Configúrala en apps/api/.env antes de arrancar la API.",
-  )
-}
-
-const APP_URL: string = process.env.APP_URL
 
 export async function register(req: Request, res: Response) {
   const data = registerSchema.parse(req.body)
@@ -217,6 +212,23 @@ export async function confirmPasswordReset(req: Request, res: Response) {
       })
     }
 
+    throw error
+  }
+}
+
+export async function activate(req: Request, res: Response) {
+  const data = activateSchema.parse(req.body)
+
+  try {
+    await activateInvitation(data.token, await hashPassword(data.password))
+    return res.status(200).json({ ok: true })
+  } catch (error) {
+    if (error instanceof InvitationTokenError) {
+      return res.status(400).json({
+        ok: false,
+        message: "El enlace no es válido o ya expiró.",
+      })
+    }
     throw error
   }
 }

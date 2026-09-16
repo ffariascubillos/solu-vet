@@ -42,10 +42,10 @@
 
 ## 5. User invitations (`apps/api/src/modules/users/`)
 
-- [ ] 5.1 Implement `POST /api/users/invite` (behind `requireAuth` + `requireRole("OWNER")`): creates a pending `User` plus a `UserInvitation` row with a hashed single-use token, and calls `EmailSender.sendActivationEmail`; verify with a test that a non-`OWNER` is rejected and an `OWNER` succeeds.
-- [ ] 5.2 Reject invitations for an email already belonging to a `User`, per `specs/user-invitations/spec.md`; verify with a test.
-- [ ] 5.3 Implement `POST /api/auth/activate` verifying the token against `UserInvitation`, rejecting unknown/expired/already-used tokens, and setting the user's password on success; verify with tests for the valid, expired and already-used cases.
-- [ ] 5.4 Verify the activated user's `organizationId` and `role` match what the inviting `OWNER` specified and cannot be altered by the activation request body; add a test asserting a client-supplied `organizationId` in the activation request is ignored.
+- [x] 5.1 Implement `POST /api/users/invite` (behind `requireAuth` + `requireRole("OWNER")`): creates a pending `User` plus a `UserInvitation` row with a hashed single-use token, and calls `EmailSender.sendActivationEmail`; verify with a test that a non-`OWNER` is rejected and an `OWNER` succeeds. (Pending `User.passwordHash` set to a hash of an unguessable random value, since the schema does not allow a null `passwordHash` — login is impossible until activation. `role` request field is `z.literal("OWNER")`, the only value `UserRole` has today.)
+- [x] 5.2 Reject invitations for an email already belonging to a `User`, per `specs/user-invitations/spec.md`; verify with a test. (Also verified: an email with an existing *pending* invitation is rejected too, since the check is against `User`, created together with the first `UserInvitation`.)
+- [x] 5.3 Implement `POST /api/auth/activate` verifying the token against `UserInvitation`, rejecting unknown/expired/already-used tokens, and setting the user's password on success; verify with tests for the valid, expired and already-used cases. (Token validation, marking `acceptedAt`, and the `User.passwordHash` update run inside one `prisma.$transaction` in `activateInvitation()` — a failed password update rolls back `acceptedAt` too, so a failed activation never burns the token. Activation token TTL: 7 days.)
+- [x] 5.4 Verify the activated user's `organizationId` and `role` match what the inviting `OWNER` specified and cannot be altered by the activation request body; add a test asserting a client-supplied `organizationId` in the activation request is ignored. (`activateSchema` has no `organizationId`/`role` fields at all, so Zod strips them if sent.)
 
 ## 6. Tenant isolation — Tutors (`apps/api/src/modules/tutors/`)
 

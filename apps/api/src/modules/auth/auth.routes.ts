@@ -8,6 +8,7 @@ import {
   logoutAll,
   requestPasswordReset,
   confirmPasswordReset,
+  activate,
 } from "./auth.controller.js"
 
 export const authRouter = Router()
@@ -19,3 +20,4 @@ authRouter.post("/logout", logout)
 authRouter.post("/logout-all", requireAuth, logoutAll)
 authRouter.post("/password-reset/request", requestPasswordReset)
 authRouter.post("/password-reset/confirm", confirmPasswordReset)
+authRouter.post("/activate", activate)

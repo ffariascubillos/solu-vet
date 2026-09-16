@@ -49,3 +49,10 @@ export const passwordResetConfirmSchema = z.object({
 })
 
 export type PasswordResetConfirmInput = z.infer<typeof passwordResetConfirmSchema>
+
+export const activateSchema = z.object({
+  token: z.string(),
+  password: z.string().min(8),
+})
+
+export type ActivateInput = z.infer<typeof activateSchema>
