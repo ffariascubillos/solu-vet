@@ -8,9 +8,10 @@ import {
 
 export async function createConsultation(req: Request, res: Response) {
   const data = createConsultationSchema.parse(req.body);
+  const organizationId = req.auth!.organizationId;
 
-  const patientExists = await prisma.patient.findUnique({
-    where: { id: data.patientId },
+  const patientExists = await prisma.patient.findFirst({
+    where: { id: data.patientId, organizationId },
   });
 
   if (!patientExists) {
@@ -23,6 +24,7 @@ export async function createConsultation(req: Request, res: Response) {
   const consultation = await prisma.consultation.create({
     data: {
       patientId: data.patientId,
+      organizationId,
       remoteAnamnesis: data.remoteAnamnesis,
       consultationReason: data.consultationReason,
       currentAnamnesis: data.currentAnamnesis,
@@ -94,8 +96,8 @@ export async function createConsultation(req: Request, res: Response) {
   });
 }
 
-export async function getConsultations(_req: Request, res: Response) {
-  const consultations = await prisma.consultation.findMany({
+export async function getConsultations(req: Request, res: Response) {
+  const consultations = await req.prisma!.consultation.findMany({
     include: {
       patient: {
         include: {
@@ -122,7 +124,7 @@ export async function getConsultations(_req: Request, res: Response) {
 export async function getConsultationById(req: Request, res: Response) {
   const id = String(req.params.id);
 
-  const consultation = await prisma.consultation.findUnique({
+  const consultation = await req.prisma!.consultation.findFirst({
     where: { id },
     include: {
       patient: {
@@ -154,7 +156,7 @@ export async function getConsultationById(req: Request, res: Response) {
 export async function getConsultationsByPatient(req: Request, res: Response) {
   const patientId = String(req.params.patientId);
 
-  const consultations = await prisma.consultation.findMany({
+  const consultations = await req.prisma!.consultation.findMany({
     where: { patientId },
     include: {
       homeTreatment: true,
@@ -178,7 +180,7 @@ export async function updateConsultation(req: Request, res: Response) {
   const id = String(req.params.id);
   const data = updateConsultationSchema.parse(req.body);
 
-  const existing = await prisma.consultation.findUnique({
+  const existing = await req.prisma!.consultation.findFirst({
     where: { id },
     include: {
       homeTreatment: true,
@@ -255,7 +257,7 @@ export async function updateConsultation(req: Request, res: Response) {
 export async function deleteConsultation(req: Request, res: Response) {
   const id = String(req.params.id);
 
-  const existing = await prisma.consultation.findUnique({
+  const existing = await req.prisma!.consultation.findFirst({
     where: { id },
     include: {
       attachments: true,
@@ -289,11 +291,14 @@ export async function uploadConsultationAttachment(
 ) {
   const consultationId = String(req.params.id);
 
-  const consultation = await prisma.consultation.findUnique({
+  const consultation = await req.prisma!.consultation.findFirst({
     where: { id: consultationId },
   });
 
   if (!consultation) {
+    if (req.file) {
+      deleteLocalFile(`/uploads/${req.file.filename}`);
+    }
     return res.status(404).json({
       ok: false,
       message: "Consultation not found",
@@ -326,8 +331,8 @@ export async function uploadConsultationAttachment(
 export async function deleteAttachment(req: Request, res: Response) {
   const id = String(req.params.attachmentId);
 
-  const attachment = await prisma.attachment.findUnique({
-    where: { id },
+  const attachment = await prisma.attachment.findFirst({
+    where: { id, consultation: { organizationId: req.auth!.organizationId } },
   });
 
   if (!attachment) {

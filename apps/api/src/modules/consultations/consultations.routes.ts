@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { requireAuth } from "../../middlewares/require-auth.js";
 import { uploadSingleAttachment } from "../../middlewares/upload.js";
 import {
   createConsultation,
@@ -12,6 +13,8 @@ import {
 } from "./consultations.controller.js";
 
 export const consultationsRouter = Router();
+
+consultationsRouter.use(requireAuth);
 
 consultationsRouter.post("/", createConsultation);
 consultationsRouter.get("/", getConsultations);
