@@ -1,4 +1,5 @@
 import { Router } from "express"
+import { requireAuth } from "../../middlewares/require-auth.js"
 import {
   createPatient,
   getPatientById,
@@ -8,6 +9,8 @@ import {
 } from "./patients.controller.js"
 
 export const patientsRouter = Router()
+
+patientsRouter.use(requireAuth)
 
 patientsRouter.post("/", createPatient)
 patientsRouter.get("/", getPatients)

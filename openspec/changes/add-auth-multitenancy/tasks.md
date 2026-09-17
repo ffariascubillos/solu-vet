@@ -58,12 +58,12 @@
 
 ## 7. Tenant isolation — Patients (`apps/api/src/modules/patients/`)
 
-- [ ] 7.1 Add `requireAuth` to `patients.routes.ts` for every route.
-- [ ] 7.2 Update `createPatient`: set `organizationId` from `req.auth.organizationId`; change the `tutorExists` check to `findFirst({ where: { id: data.tutorId, organizationId } })` so a patient cannot be attached to another organization's tutor, per `specs/tenant-data-isolation/spec.md`'s related-record-ownership requirement; verify with a test that referencing another organization's `tutorId` returns 404 and creates nothing (species/breed existence checks stay unscoped, since those catalogs remain global).
-- [ ] 7.3 Update `updatePatient`: change `existingPatient` lookup to `findFirst({ where: { id, organizationId } })`; re-validate `tutorId` ownership the same way as 7.2; verify with a test that updating another organization's patient, or reassigning it to another organization's tutor, returns 404 and changes nothing.
-- [ ] 7.4 Update `getPatients`: add the `organizationId` filter; verify with a test.
-- [ ] 7.5 Update `searchPatients`: add the `organizationId` filter alongside the existing name search; verify with a test.
-- [ ] 7.6 Update `getPatientById`: change to `findFirst({ where: { id, organizationId } })`; verify with a test that another organization's patient id (including its nested consultations) returns 404.
+- [x] 7.1 Add `requireAuth` to `patients.routes.ts` for every route.
+- [x] 7.2 Update `createPatient`: set `organizationId` from `req.auth.organizationId`; change the `tutorExists` check to `findFirst({ where: { id: data.tutorId, organizationId } })` so a patient cannot be attached to another organization's tutor, per `specs/tenant-data-isolation/spec.md`'s related-record-ownership requirement; verify with a test that referencing another organization's `tutorId` returns 404 and creates nothing (species/breed existence checks stay unscoped, since those catalogs remain global).
+- [x] 7.3 Update `updatePatient`: change `existingPatient` lookup to `findFirst({ where: { id, organizationId } })`; re-validate `tutorId` ownership the same way as 7.2; verify with a test that updating another organization's patient, or reassigning it to another organization's tutor, returns 404 and changes nothing.
+- [x] 7.4 Update `getPatients`: add the `organizationId` filter; verify with a test.
+- [x] 7.5 Update `searchPatients`: add the `organizationId` filter alongside the existing name search; verify with a test.
+- [x] 7.6 Update `getPatientById`: change to `findFirst({ where: { id, organizationId } })`; verify with a test that another organization's patient id (including its nested consultations) returns 404.
 
 ## 8. Tenant isolation — Consultations and attachments (`apps/api/src/modules/consultations/`)
 

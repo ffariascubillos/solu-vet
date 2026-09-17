@@ -4,9 +4,10 @@ import { createPatientSchema } from "./patients.schemas.js"
 
 export async function createPatient(req: Request, res: Response) {
   const data = createPatientSchema.parse(req.body)
+  const organizationId = req.auth!.organizationId
 
-  const tutorExists = await prisma.tutor.findUnique({
-    where: { id: data.tutorId },
+  const tutorExists = await prisma.tutor.findFirst({
+    where: { id: data.tutorId, organizationId },
   })
 
   if (!tutorExists) {
@@ -47,7 +48,7 @@ export async function createPatient(req: Request, res: Response) {
   }
 
   const patient = await prisma.patient.create({
-    data,
+    data: { ...data, organizationId },
     include: {
       species: true,
       breed: true,
@@ -63,8 +64,9 @@ export async function createPatient(req: Request, res: Response) {
 export async function updatePatient(req: Request, res: Response) {
   const id = String(req.params.id)
   const data = createPatientSchema.parse(req.body)
+  const organizationId = req.auth!.organizationId
 
-  const existingPatient = await prisma.patient.findUnique({ where: { id } })
+  const existingPatient = await req.prisma!.patient.findFirst({ where: { id } })
   if (!existingPatient) {
     return res.status(404).json({
       ok: false,
@@ -72,8 +74,8 @@ export async function updatePatient(req: Request, res: Response) {
     })
   }
 
-  const tutorExists = await prisma.tutor.findUnique({
-    where: { id: data.tutorId },
+  const tutorExists = await prisma.tutor.findFirst({
+    where: { id: data.tutorId, organizationId },
   })
 
   if (!tutorExists) {
@@ -128,8 +130,8 @@ export async function updatePatient(req: Request, res: Response) {
   })
 }
 
-export async function getPatients(_req: Request, res: Response) {
-  const patients = await prisma.patient.findMany({
+export async function getPatients(req: Request, res: Response) {
+  const patients = await req.prisma!.patient.findMany({
     include: {
       tutor: true,
       species: true,
@@ -156,7 +158,7 @@ export async function searchPatients(req: Request, res: Response) {
     })
   }
 
-  const patients = await prisma.patient.findMany({
+  const patients = await req.prisma!.patient.findMany({
     where: {
       OR: [
         {
@@ -192,7 +194,7 @@ export async function searchPatients(req: Request, res: Response) {
 export async function getPatientById(req: Request, res: Response) {
   const id = String(req.params.id)
 
-  const patient = await prisma.patient.findUnique({
+  const patient = await req.prisma!.patient.findFirst({
     where: { id },
     include: {
       tutor: true,
