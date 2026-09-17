@@ -381,4 +381,26 @@ describe("Consultations API tenant isolation", () => {
     expect(stillExists).not.toBeNull()
     expect(fs.existsSync(attachmentPath)).toBe(true)
   })
+
+  it("ignores a client-supplied organizationId when creating a consultation", async () => {
+    const ownerB = await registerOwner()
+    const patientA = await createPatientForOrg(ownerAToken)
+
+    const response = await request(app)
+      .post("/api/consultations")
+      .set("Authorization", `Bearer ${ownerAToken}`)
+      .send(
+        createConsultationPayload(patientA.id, {
+          organizationId: ownerB.organization.id,
+        }),
+      )
+
+    expect(response.status).toBe(201)
+
+    const created = await prisma.consultation.findUnique({
+      where: { id: response.body.data.id },
+    })
+    expect(created?.organizationId).toBe(organizationAId)
+    expect(created?.organizationId).not.toBe(ownerB.organization.id)
+  })
 })

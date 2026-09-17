@@ -1243,5 +1243,48 @@ describe("Tutor and Patient API", () => {
         message: "Patient not found",
       })
     })
+
+    it("ignores a client-supplied organizationId when creating a tutor", async () => {
+      const ownerB = await registerOwner()
+
+      const response = await request(app)
+        .post("/api/tutors")
+        .set("Authorization", `Bearer ${ownerAToken}`)
+        .send(
+          createTutorPayload({
+            organizationId: ownerB.organization.id,
+          } as any),
+        )
+
+      expect(response.status).toBe(201)
+
+      const created = await prisma.tutor.findUnique({
+        where: { id: response.body.data.id },
+      })
+      expect(created?.organizationId).toBe(organizationAId)
+      expect(created?.organizationId).not.toBe(ownerB.organization.id)
+    })
+
+    it("ignores a client-supplied organizationId when creating a patient", async () => {
+      const ownerB = await registerOwner()
+      const tutor = await createTutor()
+
+      const response = await request(app)
+        .post("/api/patients")
+        .set("Authorization", `Bearer ${ownerAToken}`)
+        .send(
+          await createPatientPayload(tutor.id, {
+            organizationId: ownerB.organization.id,
+          } as any),
+        )
+
+      expect(response.status).toBe(201)
+
+      const created = await prisma.patient.findUnique({
+        where: { id: response.body.data.id },
+      })
+      expect(created?.organizationId).toBe(organizationAId)
+      expect(created?.organizationId).not.toBe(ownerB.organization.id)
+    })
   })
 })
