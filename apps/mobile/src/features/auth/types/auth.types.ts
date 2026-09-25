@@ -27,3 +27,25 @@ export const initialRegisterForm: RegisterForm = {
   password: '',
   confirmPassword: '',
 };
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+};
+
+export type AuthOrganization = {
+  id: string;
+  name: string;
+  type: OrganizationType;
+  trialEndsAt: string | null;
+  subscriptionStatus: string;
+};
+
+export type AuthSessionData = {
+  accessToken: string;
+  refreshToken: string;
+  user: AuthUser;
+  organization: AuthOrganization;
+};

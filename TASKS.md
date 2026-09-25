@@ -17,6 +17,8 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 - [ ] Manually verify the Tutor/Patient edit screens on an Android phone via Expo Go: edit success, duplicate rut/email errors, species/breed cascade reset, validation errors.
 
+- [ ] Before the Android + web MVP launch, mitigate the web token-storage risk recorded in `PROJECT_STATUS.md` (Risks Pending).
+
 ### Testing
 
 - None.

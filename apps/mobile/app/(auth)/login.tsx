@@ -1,5 +1,4 @@
 import { router, type Href } from 'expo-router';
-import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,36 +10,11 @@ import { HelperText, Text } from 'react-native-paper';
 
 import { AuthHeader } from '@/src/features/auth/components/AuthHeader';
 import { LoginForm } from '@/src/features/auth/components/LoginForm';
-import { initialLoginForm } from '@/src/features/auth/types/auth.types';
-import { validateLoginForm } from '@/src/features/auth/auth.validation';
+import { useLogin } from '@/src/features/auth/hooks/useLogin';
 import { colors } from '@/src/theme/colors';
 
-import type { LoginForm as LoginFormState } from '@/src/features/auth/types/auth.types';
-
 export default function LoginScreen() {
-  const [form, setForm] = useState<LoginFormState>(initialLoginForm);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  function handleChangeField(field: keyof LoginFormState, value: string) {
-    setError('');
-    setForm((current) => ({ ...current, [field]: value }));
-  }
-
-  async function handleSubmit() {
-    const validationError = validateLoginForm(form);
-
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setError('');
-    setLoading(true);
-
-    // TODO: conectar con POST /api/auth/login cuando el backend exista.
-    setLoading(false);
-  }
+  const { form, error, loading, onChangeField, onSubmit } = useLogin();
 
   function handleForgotPassword() {
     router.push('/forgot-password' as Href);
@@ -64,9 +38,9 @@ export default function LoginScreen() {
           <LoginForm
             form={form}
             fieldErrors={{}}
-            onChangeField={handleChangeField}
+            onChangeField={onChangeField}
             onForgotPassword={handleForgotPassword}
-            onSubmit={handleSubmit}
+            onSubmit={onSubmit}
             loading={loading}
           />
 

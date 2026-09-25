@@ -1,5 +1,4 @@
 import { router, type Href } from 'expo-router';
-import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -11,39 +10,11 @@ import { HelperText, Text } from 'react-native-paper';
 
 import { AuthHeader } from '@/src/features/auth/components/AuthHeader';
 import { RegisterForm } from '@/src/features/auth/components/RegisterForm';
-import { initialRegisterForm } from '@/src/features/auth/types/auth.types';
-import { validateRegisterForm } from '@/src/features/auth/auth.validation';
+import { useRegister } from '@/src/features/auth/hooks/useRegister';
 import { colors } from '@/src/theme/colors';
 
-import type { RegisterForm as RegisterFormState } from '@/src/features/auth/types/auth.types';
-
 export default function RegisterScreen() {
-  const [form, setForm] = useState<RegisterFormState>(initialRegisterForm);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  function handleChangeField(
-    field: keyof RegisterFormState,
-    value: string,
-  ) {
-    setError('');
-    setForm((current) => ({ ...current, [field]: value }));
-  }
-
-  async function handleSubmit() {
-    const validationError = validateRegisterForm(form);
-
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setError('');
-    setLoading(true);
-
-    // TODO: conectar con POST /api/auth/register cuando el backend exista.
-    setLoading(false);
-  }
+  const { form, error, loading, onChangeField, onSubmit } = useRegister();
 
   function goToLogin() {
     router.push('/login' as Href);
@@ -66,8 +37,8 @@ export default function RegisterScreen() {
           <RegisterForm
             form={form}
             fieldErrors={{}}
-            onChangeField={handleChangeField}
-            onSubmit={handleSubmit}
+            onChangeField={onChangeField}
+            onSubmit={onSubmit}
             loading={loading}
           />
 

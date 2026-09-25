@@ -8,7 +8,15 @@ import {
 } from '@react-navigation/drawer';
 import { Avatar, Divider, Text } from 'react-native-paper';
 
+import { useAuth } from '@/src/features/auth/hooks/useAuth';
+
+const roleLabels: Record<string, string> = {
+  OWNER: 'Propietario',
+};
+
 function CustomDrawerContent(props: ComponentProps<typeof DrawerItemList>) {
+  const { user } = useAuth();
+
   return (
     <DrawerContentScrollView
       {...props}
@@ -20,10 +28,10 @@ function CustomDrawerContent(props: ComponentProps<typeof DrawerItemList>) {
           style={styles.avatar}
         />
         <Text variant="titleLarge" style={styles.userName}>
-          Dra. Leslie
+          {user?.name}
         </Text>
         <Text variant="bodySmall" style={styles.userRole}>
-          Veterinario Principal
+          {user?.role ? roleLabels[user.role] ?? user.role : ''}
         </Text>
       </View>
 

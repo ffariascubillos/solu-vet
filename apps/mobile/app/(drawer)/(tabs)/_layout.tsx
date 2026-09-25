@@ -56,6 +56,25 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="cuenta"
+        options={{
+          title: 'Cuenta',
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons
+              name="account-circle"
+              size={28}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="cuenta/invitar"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="patients/create"
         options={{
           href: null,
