@@ -19,10 +19,7 @@ Decisions taken before OpenSpec was adopted, or outside of a change. A decision 
 
 ### Duplicate Tutor validation
 
-- `Tutor.rut` and `Tutor.email` are `@unique`. RUT is normalized and format-validated (Chilean RUT) in the API before creation.
-- Duplicates are detected with explicit `findUnique()` checks inside `createTutor()`/`updateTutor()` instead of relying on Prisma `P2002`: the `P2002` metadata does not reliably identify which field collided in this runtime. Update excludes the tutor's own record, so saving a tutor with its own unchanged rut/email does not produce a false `409`.
-- Central `P2002` handling stays in `error-handler.ts` as a fallback for concurrent writes.
-- Mobile sends an empty optional Tutor email as `undefined`, so it is omitted from the JSON body rather than sent as an empty string.
+Superseded by `openspec/specs/tenant-data-isolation/spec.md` ("Tutor identifiers are unique per organization, not globally"). RUT is still normalized and format-validated (Chilean RUT) in the API before creation, and duplicates are still detected with explicit `findUnique()` checks (now scoped by `organizationId`) instead of relying on Prisma `P2002`, for the same reason as before: `P2002` metadata does not reliably identify which field collided in this runtime.
 
 ### Species and Breed as reference tables
 
@@ -99,8 +96,8 @@ Implemented:
 
 ## Risks Pending
 
-- **No authentication or user account flow.** Anyone with the API URL has full read and write access to all Tutor and Patient data. This is the single largest gap before the system is usable outside a demo.
-- **Test coverage is one file.** `apps/api/src/test/tutor-patient.api.test.ts` covers the Tutor, Patient, Species, Breed and Region flows. The `consultations` module has no coverage, and there are no mobile tests of any kind.
+- **Only one role exists (`OWNER`).** `POST /api/users/invite` can invite additional users into an Organization, but every invited user activates as `OWNER` — there is no lower-privilege role yet, so "only the owner can do X" cannot be enforced beyond "only someone in this Organization can do X." Adding a second role (and updating `requireRole` call sites accordingly) is deferred.
+- **Test coverage on mobile is auth-only.** `apps/api` now has test files for `tutors`/`patients` (`tutor-patient.api.test.ts`), `consultations`, `auth` and `users`. On mobile, only `apps/mobile/src/features/auth/` has automated tests (55, via `jest-expo`); the Patient/Tutor registration, search and detail screens have none.
 - **Web session tokens live in `localStorage`.** `expo-secure-store` has no web implementation, so `apps/mobile/src/services/token-storage.ts` falls back to `localStorage` on web (Android keeps SecureStore). Any XSS on the web build could read the access and refresh tokens. Accepted for development; the MVP ships on Android + web, so it must be mitigated before launch (see `TASKS.md`).
 - **Validation error responses are not normalized** beyond the duplicate Tutor cases.
 - **The tablet two-column layout was never verified on physical hardware.** It was checked on web viewports at 900px and 390px only; no Android tablet or emulator was available.

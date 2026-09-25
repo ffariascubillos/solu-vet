@@ -36,7 +36,15 @@
 - Completed: add patient update endpoint.
 - Decided not to implement tutor/patient delete endpoints: `onDelete: Cascade` from Tutor/Patient down to Consultation and its clinical records means a hard delete would irreversibly erase medical history, with no auth or confirmation flow yet to guard it. Real deletions are handled manually against the database.
 - Return predictable validation and unique-constraint errors.
-- Add an admin-only CRUD maintainer for species and breeds (depends on authentication with roles — see Future Platform Features).
+- Add an admin-only CRUD maintainer for species and breeds, gated by the existing `OWNER` role.
+
+### Authentication and Multi-tenancy
+- Completed: add `Organization` as the tenant boundary (independent vet or clinic), with every `User` bound to exactly one `Organization`.
+- Completed: add registration, login, refresh-token rotation, logout, and "log out of all devices".
+- Completed: add `OWNER`-only user invitations and account activation.
+- Completed: add self-service password recovery via an emailed reset link.
+- Completed: scope every Tutor/Patient/Consultation endpoint by `organizationId` (tenant data isolation).
+- Completed: gate the mobile app behind an authenticated session, with secure token storage and silent token refresh.
 
 ## Phase 2 - Clinical Workflow
 
@@ -83,10 +91,9 @@
 
 ## Future Platform Features
 
-- Multi-user accounts.
 - Veterinarian profiles.
 - Cloud file storage.
 - Offline mode.
 - Data synchronization.
-- Role-based permissions.
+- A non-owner role with reduced permissions (today every invited user activates as `OWNER` — see `PROJECT_STATUS.md` Risks Pending).
 - Play Store deployment.

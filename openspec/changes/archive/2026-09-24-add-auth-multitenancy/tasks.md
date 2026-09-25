@@ -95,6 +95,6 @@
 
 ## 11. Documentation
 
-- [ ] 11.1 Replace the "Duplicate Tutor validation" section of `PROJECT_STATUS.md` with a pointer to `specs/tenant-data-isolation/spec.md` once this change is archived, per the project's rule that specs supersede equivalent `PROJECT_STATUS.md` sections.
-- [ ] 11.2 Update `PROJECT_STATUS.md`'s "Risks Pending" section to remove the "No authentication or user account flow" item and record the new capability state (Organizations, auth, invitations) per the project's documentation rules.
-- [ ] 11.3 Update `TASKS.md` and `ROADMAP.md` to reflect that authentication, multi-tenancy and user invitations are implemented, moving the still-deferred admin-only Species/Breed maintainer to depend on the now-existing `OWNER` role.
+- [x] 11.1 Replace the "Duplicate Tutor validation" section of `PROJECT_STATUS.md` with a pointer to `specs/tenant-data-isolation/spec.md` once this change is archived, per the project's rule that specs supersede equivalent `PROJECT_STATUS.md` sections. (Done immediately after archiving, moving the 4 delta specs to `openspec/specs/{organizations,tenant-data-isolation,user-authentication,user-invitations}/spec.md`.)
+- [x] 11.2 Update `PROJECT_STATUS.md`'s "Risks Pending" section to remove the "No authentication or user account flow" item and record the new capability state (Organizations, auth, invitations) per the project's documentation rules. (Done as: removed the resolved risk, corrected the now-stale "test coverage is one file" claim, and added the real residual risk found during manual testing — only the `OWNER` role exists today.)
+- [x] 11.3 Update `TASKS.md` and `ROADMAP.md` to reflect that authentication, multi-tenancy and user invitations are implemented, moving the still-deferred admin-only Species/Breed maintainer to depend on the now-existing `OWNER` role.
