@@ -128,7 +128,18 @@ export default function PatientDetailScreen() {
         </View>
 
         <View style={[styles.card, isTablet && styles.rowItem]}>
-          <Text style={styles.sectionTitle}>Tutor</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Tutor</Text>
+            <Button
+              mode="outlined"
+              onPress={() =>
+                router.push(`/tutors/${patient.tutor.id}` as Href)
+              }
+              icon="account"
+              compact>
+              Ver tutor
+            </Button>
+          </View>
           <Text style={styles.text}>
             Nombre: {patient.tutor.firstName} {patient.tutor.lastName}
           </Text>

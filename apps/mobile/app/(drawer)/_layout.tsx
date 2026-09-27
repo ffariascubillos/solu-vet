@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'react';
+import { router } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
@@ -56,9 +57,10 @@ export default function DrawerLayout() {
       }}>
       <Drawer.Screen
         name="(tabs)"
+        listeners={{ drawerItemPress: () => router.navigate('/') }}
         options={{
           drawerLabel: 'Inicio',
-          title: 'HuellaVet',
+          title: 'SoluVet',
           drawerIcon: ({ color }) => (
             <Ionicons name="apps-outline" size={22} color={color} />
           ),

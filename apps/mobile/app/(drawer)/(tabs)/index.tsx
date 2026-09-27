@@ -4,26 +4,19 @@ import { Text, Avatar, Surface, TouchableRipple } from 'react-native-paper';
 import { Link } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { useAuth } from '@/src/features/auth/hooks/useAuth';
+
 export default function HomeScreen() {
+  const { user } = useAuth();
+  const name = user?.name?.trim();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* HEADER CON AVATAR */}
       <View style={styles.headerUser}>
-        <View>
-          <Text variant="headlineSmall" style={styles.welcomeText}>
-            ¡Buen día!
-          </Text>
-          <Text
-            variant="titleMedium"
-            style={{
-              marginTop: 8,
-              marginLeft: 8,
-              color: '#22C55E',
-              fontWeight: 'bold',
-            }}>
-            Dra. Leslie
-          </Text>
-        </View>
+        <Text variant="headlineSmall" style={styles.welcomeText}>
+          {name ? `¡Hola, ${name}!` : '¡Hola!'}
+        </Text>
         <Avatar.Image
           size={60}
           source={{ uri: 'https://i.pravatar.cc/150?img=5' }}
