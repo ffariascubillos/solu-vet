@@ -52,7 +52,7 @@ async function createPatientPayloadFor(
   overrides: Record<string, unknown> = {},
 ) {
   const species = await prisma.species.findFirstOrThrow({
-    where: { name: "Perro" },
+    where: { name: "Canino" },
   })
   const breed = await prisma.breed.findFirstOrThrow({
     where: { speciesId: species.id },

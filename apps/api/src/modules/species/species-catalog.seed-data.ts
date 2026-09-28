@@ -7,7 +7,7 @@ type SpeciesSeed = {
 
 export const SPECIES_SEED_DATA: SpeciesSeed[] = [
   {
-    name: "Perro",
+    name: "Canino",
     breeds: [
       "Labrador Retriever",
       "Golden Retriever",
@@ -17,18 +17,88 @@ export const SPECIES_SEED_DATA: SpeciesSeed[] = [
       "Chihuahua",
       "Beagle",
       "Mestizo / Sin raza definida",
+      "Fox Terrier Chileno",
+      "Schnauzer",
+      "Yorkshire Terrier",
+      "Shih Tzu",
+      "Cocker Spaniel",
+      "Dachshund",
+      "Border Collie",
+      "Husky Siberiano",
+      "Pug",
+      "Boxer",
+      "Rottweiler",
     ],
   },
   {
-    name: "Gato",
+    name: "Felino",
     breeds: [
       "Común Europeo",
       "Siamés",
       "Persa",
       "Maine Coon",
       "Angora",
-      "Mestizo / Sin raza definida",
+      "Doméstico de pelo corto",
+      "Doméstico de pelo largo",
+      "Bengalí",
+      "Ragdoll",
+      "Británico de pelo corto",
+      "Esfinge",
     ],
+  },
+  {
+    name: "Lagomorfo",
+    breeds: [
+      "Conejo doméstico / Mestizo",
+      "Enano holandés",
+      "Belier (Lop)",
+      "Cabeza de león",
+      "Rex",
+    ],
+  },
+  {
+    name: "Erizo de tierra",
+    breeds: ["Erizo africano pigmeo"],
+  },
+  {
+    name: "Hurón",
+    breeds: ["Hurón doméstico"],
+  },
+  {
+    name: "Cobayo",
+    breeds: [
+      "Americano (pelo corto)",
+      "Abisinio",
+      "Peruano (pelo largo)",
+      "Mestizo",
+    ],
+  },
+  {
+    name: "Hámster",
+    breeds: ["Sirio", "Ruso (enano)", "Roborovski", "Chino"],
+  },
+  {
+    name: "Reptil",
+    breeds: ["Tortuga de tierra", "Tortuga de agua", "Otro reptil"],
+  },
+  {
+    name: "Ave",
+    breeds: [
+      "Ninfa (Cacatúa ninfa)",
+      "Canario",
+      "Catita australiana",
+      "Agapornis",
+      "Loro",
+      "Loro Tricahue",
+      "Loro Choroy",
+      "Cachaña",
+      "Perico Cordillerano",
+      "Otra ave",
+    ],
+  },
+  {
+    name: "Chinchilla",
+    breeds: ["Chinchilla doméstica"],
   },
 ]
 

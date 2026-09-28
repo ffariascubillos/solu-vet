@@ -46,7 +46,7 @@ const createPatientPayload = async (
   overrides: Partial<PatientPayload> = {},
 ): Promise<PatientPayload> => {
   const species = await prisma.species.findFirstOrThrow({
-    where: { name: "Perro" },
+    where: { name: "Canino" },
   })
   const breed = await prisma.breed.findFirstOrThrow({
     where: { speciesId: species.id },
@@ -371,10 +371,10 @@ describe("Tutor and Patient API", () => {
   it("returns 400 when patient breed does not match species", async () => {
     const tutor = await createTutor()
     const cat = await prisma.species.findFirstOrThrow({
-      where: { name: "Gato" },
+      where: { name: "Felino" },
     })
     const dogBreed = await prisma.breed.findFirstOrThrow({
-      where: { species: { name: "Perro" } },
+      where: { species: { name: "Canino" } },
     })
     const payload = await createPatientPayload(tutor.id, {
       speciesId: cat.id,
@@ -527,10 +527,10 @@ describe("Tutor and Patient API", () => {
     const patientId = createResponse.body.data.id as string
 
     const cat = await prisma.species.findFirstOrThrow({
-      where: { name: "Gato" },
+      where: { name: "Felino" },
     })
     const dogBreed = await prisma.breed.findFirstOrThrow({
-      where: { species: { name: "Perro" } },
+      where: { species: { name: "Canino" } },
     })
 
     const response = await request(app)
@@ -913,18 +913,18 @@ describe("Tutor and Patient API", () => {
     expect(response.body.ok).toBe(true)
     expect(response.body.data).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: "Perro" }),
-        expect.objectContaining({ name: "Gato" }),
+        expect.objectContaining({ name: "Canino" }),
+        expect.objectContaining({ name: "Felino" }),
       ]),
     )
   })
 
   it("filters breeds by speciesId", async () => {
     const dog = await prisma.species.findFirstOrThrow({
-      where: { name: "Perro" },
+      where: { name: "Canino" },
     })
     const cat = await prisma.species.findFirstOrThrow({
-      where: { name: "Gato" },
+      where: { name: "Felino" },
     })
 
     const response = await request(app)

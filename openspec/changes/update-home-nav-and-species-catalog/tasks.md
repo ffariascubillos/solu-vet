@@ -7,15 +7,15 @@
 
 ## 2. Species catalog (coder)
 
-- [ ] 2.1 Create a data-only migration with `npm exec -w apps/api -- prisma migrate dev --create-only --name rename_species_catalog_to_chilean_names` and put the three `UPDATE` statements from design D4 in its `migration.sql`.
-- [ ] 2.2 Rewrite `SPECIES_SEED_DATA` in `apps/api/src/modules/species/species-catalog.seed-data.ts` with the table in design D5 (keep `seedCatalog` unchanged).
-- [ ] 2.3 Apply the migration to the dev DB and to `solu_vet_test`, then run `npm run prisma:seed -w apps/api` on dev.
-- [ ] 2.4 Replace the literal `"Perro"` / `"Gato"` lookups in `apps/api/src/test/tutor-patient.api.test.ts` and `apps/api/src/test/consultations.api.test.ts` with `"Canino"` / `"Felino"`.
+- [x] 2.1 Create a data-only migration with `npm exec -w apps/api -- prisma migrate dev --create-only --name rename_species_catalog_to_chilean_names` and put the three `UPDATE` statements from design D4 in its `migration.sql`.
+- [x] 2.2 Rewrite `SPECIES_SEED_DATA` in `apps/api/src/modules/species/species-catalog.seed-data.ts` with the table in design D5 (keep `seedCatalog` unchanged).
+- [x] 2.3 Apply the migration to the dev DB and to `solu_vet_test`, then run `npm run prisma:seed -w apps/api` on dev.
+- [x] 2.4 Replace the literal `"Perro"` / `"Gato"` lookups in `apps/api/src/test/tutor-patient.api.test.ts` and `apps/api/src/test/consultations.api.test.ts` with `"Canino"` / `"Felino"`.
 
 ## 3. Verification (coder, before handoff)
 
-- [ ] 3.1 `npm exec -w apps/api -- tsc --noEmit` and `npm test -w apps/api` pass.
-- [ ] 3.2 `npm exec -w apps/mobile -- tsc --noEmit` and `npm run lint -w apps/mobile` pass.
+- [x] 3.1 `npm exec -w apps/api -- tsc --noEmit` and `npm test -w apps/api` pass.
+- [x] 3.2 `npm exec -w apps/mobile -- tsc --noEmit` and `npm run lint -w apps/mobile` pass.
 
 ## 4. Tests (tester, after Felipin's positive review)
 
