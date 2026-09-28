@@ -28,4 +28,4 @@
 ## 5. Close-out (orchestrator)
 
 - [x] 5.1 Update `TASKS.md` and today's `DAILY/` log; remove the "fácil" section from `checklist-tarea-add-auth-multitenancy.md` once shipped.
-- [ ] 5.2 Commit with the `commit` skill.
+- [x] 5.2 Commit with the `commit` skill.

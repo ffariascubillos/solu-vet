@@ -4,7 +4,7 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 ## IN PROGRESS
 
-- Home/navigation fixes + Chilean species catalog (`openspec/changes/update-home-nav-and-species-catalog/`): implemented and tested; pending final commit and `/opsx:archive`.
+- None.
 
 ## NEXT
 
