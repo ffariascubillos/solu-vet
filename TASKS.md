@@ -4,7 +4,7 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 ## IN PROGRESS
 
-- Authentication + multi-tenancy (`openspec/changes/add-auth-multitenancy/`): sections 1-10 done (schema, auth infra, auth endpoints, invitations, tenant isolation on Tutors/Patients/Consultations, Prisma extension coverage, mobile auth). Section 11 (Documentation) in progress. Not yet archived — see `openspec/changes/add-auth-multitenancy/tasks.md` for the full per-section detail.
+- Home/navigation fixes + Chilean species catalog (`openspec/changes/update-home-nav-and-species-catalog/`): implemented and tested; pending final commit and `/opsx:archive`.
 
 ## NEXT
 
@@ -21,7 +21,7 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 ### Testing
 
-- None.
+- [ ] Add cleanup for the users/organizations the Playwright e2e (`npx playwright test -c e2e`) registers in the dev database on every run (`e2e-drawer-<uuid>@example.com`). No API endpoint deletes them today.
 
 ## Rules
 

@@ -19,13 +19,13 @@
 
 ## 4. Tests (tester, after Felipin's positive review)
 
-- [ ] 4.1 API: `GET /api/species` includes all ten D5 species and none of "Perro"/"Gato"; every species returns ≥1 breed from `GET /api/breeds?speciesId=`; Felino breeds include both "Doméstico" entries and not "Mestizo / Sin raza definida".
-- [ ] 4.2 API: rename migration SQL preserves ids — insert a species "Perro" + a patient in the test DB, execute the migration's `UPDATE`s, assert the patient's species is "Canino" with the same id.
-- [ ] 4.3 Mobile: Home greeting renders `¡Hola, <name>!` and `¡Hola!` for a missing name (mock `useAuth`).
-- [ ] 4.4 Mobile: Patient detail "Ver tutor" pushes `/tutors/<tutorId>`.
-- [ ] 4.5 Happy-path e2e/manual: drawer "Inicio" from "Registrar tutor" lands on Home.
+- [x] 4.1 API: `GET /api/species` includes all ten D5 species and none of "Perro"/"Gato"; every species returns ≥1 breed from `GET /api/breeds?speciesId=`; Felino breeds include both "Doméstico" entries and not "Mestizo / Sin raza definida".
+- [x] 4.2 API: rename migration SQL preserves ids — insert a species "Perro" + a patient in the test DB, execute the migration's `UPDATE`s, assert the patient's species is "Canino" with the same id.
+- [x] 4.3 Mobile: Home greeting renders `¡Hola, <name>!` and `¡Hola!` for a missing name (mock `useAuth`).
+- [x] 4.4 Mobile: Patient detail "Ver tutor" pushes `/tutors/<tutorId>`.
+- [x] 4.5 Happy-path e2e/manual: drawer "Inicio" from "Registrar tutor" lands on Home.
 
 ## 5. Close-out (orchestrator)
 
-- [ ] 5.1 Update `TASKS.md` and today's `DAILY/` log; remove the "fácil" section from `checklist-tarea-add-auth-multitenancy.md` once shipped.
+- [x] 5.1 Update `TASKS.md` and today's `DAILY/` log; remove the "fácil" section from `checklist-tarea-add-auth-multitenancy.md` once shipped.
 - [ ] 5.2 Commit with the `commit` skill.
