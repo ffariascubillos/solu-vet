@@ -4,9 +4,9 @@ Implementation groups 1–3 go to the `coder` subagent; group 4 goes to `tester`
 
 ## 1. Database (coder)
 
-- [ ] 1.1 Add `VETERINARIAN`, `RECEPTIONIST`, `ASSISTANT` to `UserRole` and `sessionVersion Int @default(0)` to `User` in `prisma/schema.prisma`, and create migration `add_user_roles_and_session_version`; verify the migration SQL only adds the enum values and the column
-- [ ] 1.2 Reset the dev DB and reload the catalog per design.md → Migration Plan step 2 (Felipin approved wiping dev data), and apply the migration to `solu_vet_test`; verify the species list endpoint returns the catalog on the dev DB
-- [ ] 1.3 Run `npm run prisma:generate -w apps/api` and verify `npm exec -w apps/api -- tsc --noEmit` passes
+- [x] 1.1 Add `VETERINARIAN`, `RECEPTIONIST`, `ASSISTANT` to `UserRole` and `sessionVersion Int @default(0)` to `User` in `prisma/schema.prisma`, and create migration `add_user_roles_and_session_version`; verify the migration SQL only adds the enum values and the column
+- [x] 1.2 Reset the dev DB and reload the catalog per design.md → Migration Plan step 2 (Felipin approved wiping dev data), and apply the migration to `solu_vet_test`; verify the species list endpoint returns the catalog on the dev DB
+- [x] 1.3 Run `npm run prisma:generate -w apps/api` and verify `npm exec -w apps/api -- tsc --noEmit` passes
 
 ## 2. API (coder)
 

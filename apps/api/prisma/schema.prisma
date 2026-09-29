@@ -36,6 +36,9 @@ enum SubscriptionStatus {
 
 enum UserRole {
   OWNER
+  VETERINARIAN
+  RECEPTIONIST
+  ASSISTANT
 }
 
 model Organization {
@@ -61,6 +64,7 @@ model User {
   role                UserRole
   organizationId      String
   organization        Organization         @relation(fields: [organizationId], references: [id])
+  sessionVersion      Int                  @default(0)
   refreshTokens       RefreshToken[]
   invitationsSent     UserInvitation[]
   passwordResetTokens PasswordResetToken[]
