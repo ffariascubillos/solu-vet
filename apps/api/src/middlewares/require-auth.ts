@@ -1,9 +1,11 @@
 import type { NextFunction, Request, Response } from "express"
-import { verifyAccessToken } from "../lib/auth/access-token.js"
+import { verifyAccessToken, type AccessTokenPayload } from "../lib/auth/access-token.js"
 import { forOrganization } from "../lib/for-organization.js"
 import { prisma } from "../lib/prisma.js"
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
+const invalidTokenResponse = { ok: false, message: "Invalid or expired token" }
+
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const header = req.headers.authorization
 
   if (!header || !header.startsWith("Bearer ")) {
@@ -13,23 +15,28 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
     })
   }
 
-  const token = header.slice("Bearer ".length)
-
+  let payload: AccessTokenPayload
   try {
-    const payload = verifyAccessToken(token)
-
-    req.auth = {
-      userId: payload.sub,
-      organizationId: payload.organizationId,
-      role: payload.role,
-    }
-    req.prisma = prisma.$extends(forOrganization(req.auth.organizationId))
-
-    next()
+    payload = verifyAccessToken(header.slice("Bearer ".length))
   } catch {
-    return res.status(401).json({
-      ok: false,
-      message: "Invalid or expired token",
-    })
+    return res.status(401).json(invalidTokenResponse)
   }
+
+  const user = await prisma.user.findUnique({
+    where: { id: payload.sub },
+    select: { organizationId: true, role: true, sessionVersion: true },
+  })
+
+  if (!user || user.sessionVersion !== payload.sessionVersion) {
+    return res.status(401).json(invalidTokenResponse)
+  }
+
+  req.auth = {
+    userId: payload.sub,
+    organizationId: user.organizationId,
+    role: user.role,
+  }
+  req.prisma = prisma.$extends(forOrganization(user.organizationId))
+
+  next()
 }

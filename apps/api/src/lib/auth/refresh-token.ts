@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto"
 import { prisma } from "../prisma.js"
 import { hashToken } from "./hash-token.js"
-import type { UserRole } from "../../generated/prisma/client.js"
+import type { Prisma, UserRole } from "../../generated/prisma/client.js"
 
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -48,6 +48,7 @@ export async function rotateRefreshToken(presentedToken: string): Promise<{
   userId: string
   organizationId: string
   role: UserRole
+  sessionVersion: number
 }> {
   const existing = await prisma.refreshToken.findFirst({
     where: { tokenHash: hashToken(presentedToken) },
@@ -90,6 +91,7 @@ export async function rotateRefreshToken(presentedToken: string): Promise<{
     userId: user.id,
     organizationId: user.organizationId,
     role: user.role,
+    sessionVersion: user.sessionVersion,
   }
 }
 
@@ -106,8 +108,11 @@ export async function revokeRefreshToken(presentedToken: string): Promise<void> 
   }
 }
 
-export async function revokeAllRefreshTokensForUser(userId: string): Promise<void> {
-  await prisma.refreshToken.updateMany({
+export async function revokeAllRefreshTokensForUser(
+  userId: string,
+  client: Prisma.TransactionClient = prisma,
+): Promise<void> {
+  await client.refreshToken.updateMany({
     where: { userId, revokedAt: null },
     data: { revokedAt: new Date() },
   })

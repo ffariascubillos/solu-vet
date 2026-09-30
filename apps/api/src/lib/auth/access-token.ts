@@ -15,6 +15,7 @@ export type AccessTokenPayload = {
   sub: string
   organizationId: string
   role: UserRole
+  sessionVersion: number
 }
 
 export function signAccessToken(payload: AccessTokenPayload): string {

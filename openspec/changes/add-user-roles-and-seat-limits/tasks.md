@@ -10,15 +10,15 @@ Implementation groups 1–3 go to the `coder` subagent; group 4 goes to `tester`
 
 ## 2. API (coder)
 
-- [ ] 2.1 Add `apps/api/src/lib/organization-limits.ts` with `USER_LIMIT_BY_ORGANIZATION_TYPE` (`INDEPENDENT: 1`, `CLINIC: 5`); verify it is the only place the number 5 appears in `apps/api/src` outside tests
-- [ ] 2.2 In `users.schemas.ts`, export `INVITABLE_ROLES` and change `inviteUserSchema.role` to `z.enum(INVITABLE_ROLES)`; verify `role: "OWNER"` fails parsing
-- [ ] 2.3 In `invitation-token.ts`, add the pending-invitation predicate helper and change `activateInvitation` to create the `User` from the invitation (rejecting when the email already has a `User`); verify by activating an invitation locally and logging in with it
-- [ ] 2.4 Rewrite `inviteUser` per design.md Decision 4 (no placeholder user, INDEPENDENT 403, org row lock, existing-user / pending-invitation / limit checks, messages as specified); verify with type check and the updated tests in 2.7
-- [ ] 2.5 Add `getSeats`, `cancelInvitation`, `removeUser` to `users.controller.ts` and their routes in `users.routes.ts` (all OWNER-only, `/invitations/:id` before `/:id`) per design.md Decision 5; verify with `curl`/REST calls against `npm run dev:api` for a clinic owner
-- [ ] 2.6 Implement design.md Decision 8: `sessionVersion` claim in `access-token.ts` (signed in `register`, `login`, `refresh`; `rotateRefreshToken` returns it), async `requireAuth` with the user lookup (missing user or version mismatch → 401, `req.auth` role/org from the DB row), and `logoutAll` / `confirmPasswordReset` incrementing `sessionVersion` in the same transaction that revokes refresh tokens; verify locally that after "logout all" a previously issued access token gets 401 on `GET /api/tutors`
-- [ ] 2.7 Implement design.md Decision 9 in `register` (pending invitation → 409 `field: "email"` with the spec message); verify with type check and the tests in 2.9
-- [ ] 2.8 Confirm `login` and `requestPasswordReset` need no change (a pending invitee has no `User`) and note it in the handoff
-- [ ] 2.9 Update the existing tests that assert replaced behavior so they reflect the new specs: `users.api.test.ts` (placeholder `User`, `role: "OWNER"`, inviting from an INDEPENDENT owner), activation tests in `auth.api.test.ts`, `require-auth.test.ts` (now async and DB-backed), and any test that signs an access token for a user that doesn't exist in the DB or without `sessionVersion`; verify `npm test -w apps/api` is green
+- [x] 2.1 Add `apps/api/src/lib/organization-limits.ts` with `USER_LIMIT_BY_ORGANIZATION_TYPE` (`INDEPENDENT: 1`, `CLINIC: 5`); verify it is the only place the number 5 appears in `apps/api/src` outside tests
+- [x] 2.2 In `users.schemas.ts`, export `INVITABLE_ROLES` and change `inviteUserSchema.role` to `z.enum(INVITABLE_ROLES)`; verify `role: "OWNER"` fails parsing
+- [x] 2.3 In `invitation-token.ts`, add the pending-invitation predicate helper and change `activateInvitation` to create the `User` from the invitation (rejecting when the email already has a `User`); verify by activating an invitation locally and logging in with it
+- [x] 2.4 Rewrite `inviteUser` per design.md Decision 4 (no placeholder user, INDEPENDENT 403, org row lock, existing-user / pending-invitation / limit checks, messages as specified); verify with type check and the updated tests in 2.7
+- [x] 2.5 Add `getSeats`, `cancelInvitation`, `removeUser` to `users.controller.ts` and their routes in `users.routes.ts` (all OWNER-only, `/invitations/:id` before `/:id`) per design.md Decision 5; verify with `curl`/REST calls against `npm run dev:api` for a clinic owner
+- [x] 2.6 Implement design.md Decision 8: `sessionVersion` claim in `access-token.ts` (signed in `register`, `login`, `refresh`; `rotateRefreshToken` returns it), async `requireAuth` with the user lookup (missing user or version mismatch → 401, `req.auth` role/org from the DB row), and `logoutAll` / `confirmPasswordReset` incrementing `sessionVersion` in the same transaction that revokes refresh tokens; verify locally that after "logout all" a previously issued access token gets 401 on `GET /api/tutors`
+- [x] 2.7 Implement design.md Decision 9 in `register` (pending invitation → 409 `field: "email"` with the spec message); verify with type check and the tests in 2.9
+- [x] 2.8 Confirm `login` and `requestPasswordReset` need no change (a pending invitee has no `User`) and note it in the handoff
+- [x] 2.9 Update the existing tests that assert replaced behavior so they reflect the new specs: `users.api.test.ts` (placeholder `User`, `role: "OWNER"`, inviting from an INDEPENDENT owner), activation tests in `auth.api.test.ts`, `require-auth.test.ts` (now async and DB-backed), and any test that signs an access token for a user that doesn't exist in the DB or without `sessionVersion`; verify `npm test -w apps/api` is green
 
 ## 3. Mobile (coder)
 

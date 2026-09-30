@@ -15,7 +15,11 @@ import {
   PasswordResetTokenError,
 } from "../../lib/auth/password-reset-token.js"
 import { emailSender } from "../../lib/email/resend-email-sender.js"
-import { activateInvitation, InvitationTokenError } from "../../lib/auth/invitation-token.js"
+import {
+  activateInvitation,
+  InvitationTokenError,
+  pendingInvitationWhere,
+} from "../../lib/auth/invitation-token.js"
 import { APP_URL } from "../../lib/env.js"
 import {
   registerSchema,
@@ -38,6 +42,19 @@ export async function register(req: Request, res: Response) {
     return res.status(409).json({
       ok: false,
       message: "Ya existe una cuenta con este correo.",
+      field: "email",
+    })
+  }
+
+  const pendingInvitation = await prisma.userInvitation.findFirst({
+    where: { email: data.email, ...pendingInvitationWhere() },
+  })
+
+  if (pendingInvitation) {
+    return res.status(409).json({
+      ok: false,
+      message:
+        "Este correo tiene una invitación pendiente. Revisa tu bandeja de entrada para activar tu cuenta.",
       field: "email",
     })
   }
@@ -68,6 +85,7 @@ export async function register(req: Request, res: Response) {
     sub: user.id,
     organizationId: organization.id,
     role: user.role,
+    sessionVersion: user.sessionVersion,
   })
   const refreshToken = await issueRefreshToken(user.id)
 
@@ -107,6 +125,7 @@ export async function login(req: Request, res: Response) {
     sub: user.id,
     organizationId: user.organizationId,
     role: user.role,
+    sessionVersion: user.sessionVersion,
   })
   const refreshToken = await issueRefreshToken(user.id)
 
@@ -137,6 +156,7 @@ export async function refresh(req: Request, res: Response) {
       sub: result.userId,
       organizationId: result.organizationId,
       role: result.role,
+      sessionVersion: result.sessionVersion,
     })
 
     return res.status(200).json({
@@ -164,7 +184,15 @@ export async function logout(req: Request, res: Response) {
 }
 
 export async function logoutAll(req: Request, res: Response) {
-  await revokeAllRefreshTokensForUser(req.auth!.userId)
+  const userId = req.auth!.userId
+
+  await prisma.$transaction(async (tx) => {
+    await revokeAllRefreshTokensForUser(userId, tx)
+    await tx.user.update({
+      where: { id: userId },
+      data: { sessionVersion: { increment: 1 } },
+    })
+  })
 
   return res.status(200).json({ ok: true })
 }
@@ -196,12 +224,15 @@ export async function confirmPasswordReset(req: Request, res: Response) {
   try {
     const { userId } = await consumePasswordResetToken(data.token)
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash: await hashPassword(data.newPassword) },
-    })
+    const passwordHash = await hashPassword(data.newPassword)
 
-    await revokeAllRefreshTokensForUser(userId)
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { passwordHash, sessionVersion: { increment: 1 } },
+      })
+      await revokeAllRefreshTokensForUser(userId, tx)
+    })
 
     return res.status(200).json({ ok: true })
   } catch (error) {
