@@ -26,7 +26,7 @@ Superseded by `openspec/specs/tenant-data-isolation/spec.md` ("Tutor identifiers
 - `Species`/`Breed` are database tables, not a Prisma enum, because a future admin-only maintainer must be able to add values without a database migration and an app release. An enum would require both for every new value; a table only needs a row insert.
 - `Patient.speciesId` and `Patient.breedId` are both required. The seed catalog includes a "Mestizo / Sin raza definida" breed per species, so "I don't know the exact breed" is always a valid choice without leaving the field empty.
 - No English→Spanish label mapping is needed for these, unlike `sex`/`reproductiveStatus`: `Species.name`/`Breed.name` are catalog data already stored in Spanish, not code-level enum values.
-- The admin-only Species/Breed CRUD maintainer is deferred until basic authentication with roles exists. Both are read-only through the API today.
+- Both are read-only through the API today; the admin-only Species/Breed CRUD maintainer is pending (see `TASKS.md`).
 
 ### Structured Tutor address
 
@@ -78,9 +78,9 @@ Not implemented: delete (deliberate — see Technical Decisions).
 Implemented:
 - `GET /api/species`, read-only, ordered by name.
 - `GET /api/breeds?speciesId=...`, read-only; `speciesId` is optional (omitted returns all breeds, ordered by species then name).
-- Seeded catalog: Perro and Gato, with a starter breed list per species including a "Mestizo / Sin raza definida" fallback.
+- Seeded catalog: defined in `openspec/specs/species-catalog/spec.md`.
 
-Not implemented: create, update and delete (deferred admin-only maintainer — depends on authentication with roles).
+Not implemented: create, update and delete (pending admin-only maintainer, OWNER-only).
 
 ### Regions / Comunas
 
@@ -96,7 +96,7 @@ Implemented:
 
 ## Risks Pending
 
-- **Test coverage on mobile is auth-only.** `apps/api` now has test files for `tutors`/`patients` (`tutor-patient.api.test.ts`), `consultations`, `auth` and `users`. On mobile, only `apps/mobile/src/features/auth/` has automated tests (55, via `jest-expo`); the Patient/Tutor registration, search and detail screens have none.
+- **Mobile test coverage skips the Tutor/Patient forms.** On mobile, `jest-expo` tests cover auth, users, services, Home and Patient detail; the Tutor/Patient registration, edit and search screens and Tutor detail have none.
 - **Web session tokens live in `localStorage`.** `expo-secure-store` has no web implementation, so `apps/mobile/src/services/token-storage.ts` falls back to `localStorage` on web (Android keeps SecureStore). Any XSS on the web build could read the access and refresh tokens. Accepted for development; the MVP ships on Android + web, so it must be mitigated before launch (see `TASKS.md`).
 - **Validation error responses are not normalized** beyond the duplicate Tutor cases.
 - **The tablet two-column layout was never verified on physical hardware.** It was checked on web viewports at 900px and 390px only; no Android tablet or emulator was available.

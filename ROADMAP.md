@@ -42,6 +42,7 @@
 - Completed: add `Organization` as the tenant boundary (independent vet or clinic), with every `User` bound to exactly one `Organization`.
 - Completed: add registration, login, refresh-token rotation, logout, and "log out of all devices".
 - Completed: add `OWNER`-only user invitations and account activation.
+- Completed: add staff roles (cargos) chosen on invitation, a per-clinic seat limit with seat management from Cuenta, and immediate session revocation.
 - Completed: add self-service password recovery via an emailed reset link.
 - Completed: scope every Tutor/Patient/Consultation endpoint by `organizationId` (tenant data isolation).
 - Completed: gate the mobile app behind an authenticated session, with secure token storage and silent token refresh.
@@ -95,5 +96,5 @@
 - Cloud file storage.
 - Offline mode.
 - Data synchronization.
-- A non-owner role with reduced permissions (today every invited user activates as `OWNER` — see `PROJECT_STATUS.md` Risks Pending).
+- Per-role permissions for staff roles (today they have the same access as `OWNER` except member management — see `openspec/specs/user-roles/spec.md`).
 - Play Store deployment.
