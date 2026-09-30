@@ -41,4 +41,4 @@ Implementation groups 1–3 go to the `coder` subagent; group 4 goes to `tester`
 ## 5. Close (orchestrator)
 
 - [x] 5.1 Remove the "Only one role exists" entry from `PROJECT_STATUS.md` → Risks Pending; update `TASKS.md` (drop nothing unrelated; add as NEXT, in this order: (1) account self-service change — change password while logged in, reusing `sessionVersion` to close other sessions, and edit the user's name, evaluating asking it on activation (checklist ítems 1 y 6); (2) record-authorship change for Tutor, Patient and Consultation with `createdByUserId` + `createdByName` + `createdByEmail` per design.md Decision 7) and today's `DAILY/DAILY_LOG_YYYY-MM-DD.md`; verify no fact is duplicated with this change's design.md
-- [ ] 5.2 Update ítems 3–5 of `checklist-tarea-add-auth-multitenancy.md` if Felipin wants them marked; commit with the `commit` skill
+- [x] 5.2 Update ítems 3–5 of `checklist-tarea-add-auth-multitenancy.md` if Felipin wants them marked; commit with the `commit` skill
