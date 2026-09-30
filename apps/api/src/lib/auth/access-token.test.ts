@@ -11,6 +11,7 @@ describe("access token", () => {
     sub: "user-1",
     organizationId: "org-1",
     role: "OWNER",
+    sessionVersion: 0,
   }
 
   it("verifies a freshly signed token and returns its payload", () => {

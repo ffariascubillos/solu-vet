@@ -3,6 +3,7 @@ import request from "supertest"
 import { afterAll, beforeEach, describe, expect, it } from "vitest"
 import { app } from "../app.js"
 import { prisma } from "../lib/prisma.js"
+import { cleanDatabase } from "./clean-database.js"
 
 type TutorPayload = {
   firstName: string
@@ -84,14 +85,6 @@ async function registerOwner(overrides: Record<string, unknown> = {}) {
     user: { id: string; email: string; name: string; role: string }
     organization: { id: string; name: string; type: string }
   }
-}
-
-async function cleanDatabase() {
-  await prisma.patient.deleteMany()
-  await prisma.tutor.deleteMany()
-  await prisma.refreshToken.deleteMany()
-  await prisma.user.deleteMany()
-  await prisma.organization.deleteMany()
 }
 
 let ownerAToken: string

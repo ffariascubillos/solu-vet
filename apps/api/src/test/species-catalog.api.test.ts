@@ -4,6 +4,7 @@ import request from "supertest"
 import { afterAll, afterEach, describe, expect, it } from "vitest"
 import { app } from "../app.js"
 import { prisma } from "../lib/prisma.js"
+import { cleanDatabase } from "./clean-database.js"
 
 const EXPECTED_SPECIES = [
   "Canino",
@@ -74,14 +75,6 @@ async function createPatient(
   expect(response.status).toBe(201)
 
   return response.body.data as { id: string }
-}
-
-async function cleanDatabase() {
-  await prisma.patient.deleteMany()
-  await prisma.tutor.deleteMany()
-  await prisma.refreshToken.deleteMany()
-  await prisma.user.deleteMany()
-  await prisma.organization.deleteMany()
 }
 
 describe("Species catalog API", () => {
