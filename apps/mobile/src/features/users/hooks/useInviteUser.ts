@@ -1,11 +1,14 @@
 import { useState } from 'react';
 
+import { getAuthErrorMessage } from '@/src/features/auth/api/auth.api';
 import { isValidEmail } from '@/src/utils/validation';
 
-import * as authApi from '../api/auth.api';
+import * as usersApi from '../api/users.api';
+import type { InvitableRole } from '../types/users.types';
 
 export function useInviteUser() {
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState<InvitableRole | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -15,9 +18,19 @@ export function useInviteUser() {
     setEmail(value);
   }
 
+  function onChangeRole(value: InvitableRole) {
+    setError('');
+    setRole(value);
+  }
+
   async function onSubmit() {
     if (!isValidEmail(email.trim())) {
       setError('Ingresa un correo electrónico válido.');
+      return;
+    }
+
+    if (!role) {
+      setError('Selecciona un cargo.');
       return;
     }
 
@@ -25,12 +38,12 @@ export function useInviteUser() {
     setLoading(true);
 
     try {
-      await authApi.inviteUser(email.trim());
+      await usersApi.inviteUser(email.trim(), role);
       setSuccess(true);
       setEmail('');
     } catch (err) {
       setError(
-        authApi.getAuthErrorMessage(err) ??
+        getAuthErrorMessage(err) ??
           'No se pudo enviar la invitación. Intenta nuevamente.'
       );
     } finally {
@@ -38,5 +51,5 @@ export function useInviteUser() {
     }
   }
 
-  return { email, error, loading, success, onChangeEmail, onSubmit };
+  return { email, role, error, loading, success, onChangeEmail, onChangeRole, onSubmit };
 }

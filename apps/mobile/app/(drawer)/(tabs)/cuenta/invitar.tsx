@@ -1,12 +1,43 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Button, Card, HelperText, TextInput } from 'react-native-paper';
+import { Redirect } from 'expo-router';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, Card, HelperText, SegmentedButtons, TextInput } from 'react-native-paper';
 
-import { useInviteUser } from '@/src/features/auth/hooks/useInviteUser';
+import { useAuth } from '@/src/features/auth/hooks/useAuth';
+import {
+  invitableRoles,
+  roleLabels,
+  useInviteUser,
+  useSeats,
+  type InvitableRole,
+} from '@/src/features/users';
 import { colors } from '@/src/theme/colors';
 
 export default function InvitarUsuarioScreen() {
-  const { email, error, loading, success, onChangeEmail, onSubmit } =
+  const { user, organization } = useAuth();
+  const seats = useSeats();
+  const { email, role, error, loading, success, onChangeEmail, onChangeRole, onSubmit } =
     useInviteUser();
+
+  if (user?.role !== 'OWNER' || organization?.type !== 'CLINIC') {
+    return <Redirect href="/cuenta" />;
+  }
+
+  if (seats.loading) {
+    return (
+      <View style={[styles.container, styles.loading]}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (seats.isFull) {
+    return <Redirect href="/cuenta" />;
+  }
+
+  async function handleSubmit() {
+    await onSubmit();
+    await seats.reload();
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -27,9 +58,16 @@ export default function InvitarUsuarioScreen() {
             />
           </View>
 
+          <Text style={styles.label}>Cargo</Text>
+          <SegmentedButtons
+            value={role ?? ''}
+            onValueChange={(value) => onChangeRole(value as InvitableRole)}
+            buttons={invitableRoles.map((value) => ({ value, label: roleLabels[value] }))}
+          />
+
           <Button
             mode="contained"
-            onPress={onSubmit}
+            onPress={handleSubmit}
             loading={loading}
             disabled={loading}
             style={styles.submitButton}
@@ -61,6 +99,14 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 24,
+  },
+  loading: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  label: {
+    color: colors.muted,
+    fontSize: 13,
   },
   title: {
     color: colors.text,

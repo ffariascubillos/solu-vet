@@ -1,13 +1,9 @@
-import { router, type Href } from 'expo-router';
 import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button } from 'react-native-paper';
 
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
+import { roleLabels, SeatsSection, type UserRole } from '@/src/features/users';
 import { colors } from '@/src/theme/colors';
-
-const roleLabels: Record<string, string> = {
-  OWNER: 'Propietario',
-};
 
 const organizationTypeLabels: Record<string, string> = {
   INDEPENDENT: 'Veterinario independiente',
@@ -39,10 +35,6 @@ export default function CuentaScreen() {
     );
   }
 
-  function goToInvite() {
-    router.push('/cuenta/invitar' as Href);
-  }
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Mi cuenta</Text>
@@ -56,7 +48,7 @@ export default function CuentaScreen() {
 
         <Text style={styles.label}>Rol</Text>
         <Text style={styles.value}>
-          {user?.role ? roleLabels[user.role] ?? user.role : ''}
+          {user?.role ? roleLabels[user.role as UserRole] : ''}
         </Text>
 
         <Text style={styles.label}>Organización</Text>
@@ -70,16 +62,7 @@ export default function CuentaScreen() {
         </Text>
       </View>
 
-      {user?.role === 'OWNER' ? (
-        <Button
-          mode="outlined"
-          onPress={goToInvite}
-          style={styles.button}
-          contentStyle={styles.buttonContent}
-          icon="account-plus">
-          Invitar usuario
-        </Button>
-      ) : null}
+      {user?.role === 'OWNER' && organization?.type === 'CLINIC' ? <SeatsSection /> : null}
 
       <Button
         mode="contained"

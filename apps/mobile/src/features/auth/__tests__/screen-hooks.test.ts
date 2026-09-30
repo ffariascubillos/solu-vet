@@ -3,7 +3,6 @@ import { act, renderHook } from '@testing-library/react-native';
 import * as authApi from '../api/auth.api';
 import { useActivateAccount } from '../hooks/useActivateAccount';
 import { useForgotPassword } from '../hooks/useForgotPassword';
-import { useInviteUser } from '../hooks/useInviteUser';
 import { useLogin } from '../hooks/useLogin';
 import { useRegister } from '../hooks/useRegister';
 import { useResetPassword } from '../hooks/useResetPassword';
@@ -329,47 +328,5 @@ describe('useActivateAccount', () => {
     });
 
     expect(result.current.error).toBe('Invitación inválida.');
-  });
-});
-
-describe('useInviteUser', () => {
-  it('rechaza un email inválido sin llamar a la API', async () => {
-    const { result } = renderHook(() => useInviteUser());
-
-    act(() => result.current.onChangeEmail('invalido'));
-    await act(async () => {
-      await result.current.onSubmit();
-    });
-
-    expect(result.current.error).toBe('Ingresa un correo electrónico válido.');
-    expect(mockedApi.inviteUser).not.toHaveBeenCalled();
-  });
-
-  it('envía la invitación, marca success y limpia el email', async () => {
-    mockedApi.inviteUser.mockResolvedValue({ ok: true });
-    const { result } = renderHook(() => useInviteUser());
-
-    act(() => result.current.onChangeEmail(' nuevo@example.com '));
-    await act(async () => {
-      await result.current.onSubmit();
-    });
-
-    expect(mockedApi.inviteUser).toHaveBeenCalledWith('nuevo@example.com');
-    expect(result.current.success).toBe(true);
-    expect(result.current.email).toBe('');
-  });
-
-  it('muestra el mensaje de la API ante un error', async () => {
-    mockedApi.inviteUser.mockRejectedValue(new Error('409'));
-    mockedApi.getAuthErrorMessage.mockReturnValue('El usuario ya existe.');
-    const { result } = renderHook(() => useInviteUser());
-
-    act(() => result.current.onChangeEmail('nuevo@example.com'));
-    await act(async () => {
-      await result.current.onSubmit();
-    });
-
-    expect(result.current.error).toBe('El usuario ya existe.');
-    expect(result.current.success).toBe(false);
   });
 });

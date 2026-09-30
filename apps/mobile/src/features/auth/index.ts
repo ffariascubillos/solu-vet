@@ -4,7 +4,6 @@ export { useRegister } from './hooks/useRegister';
 export { useForgotPassword } from './hooks/useForgotPassword';
 export { useResetPassword } from './hooks/useResetPassword';
 export { useActivateAccount } from './hooks/useActivateAccount';
-export { useInviteUser } from './hooks/useInviteUser';
 
 export { AuthHeader } from './components/AuthHeader';
 export { LoginForm } from './components/LoginForm';

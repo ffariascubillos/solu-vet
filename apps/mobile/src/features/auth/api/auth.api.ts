@@ -103,15 +103,6 @@ export async function activateInvitation(token: string, password: string) {
   return response.data;
 }
 
-export async function inviteUser(email: string) {
-  const response = await api.post<OkResponse>('/users/invite', {
-    email,
-    role: 'OWNER',
-  });
-
-  return response.data;
-}
-
 export function getAuthErrorMessage(error: unknown): string | null {
   if (!isAxiosError(error)) {
     return null;
