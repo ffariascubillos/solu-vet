@@ -96,7 +96,6 @@ Implemented:
 
 ## Risks Pending
 
-- **Only one role exists (`OWNER`).** `POST /api/users/invite` can invite additional users into an Organization, but every invited user activates as `OWNER` — there is no lower-privilege role yet, so "only the owner can do X" cannot be enforced beyond "only someone in this Organization can do X." Adding a second role (and updating `requireRole` call sites accordingly) is deferred.
 - **Test coverage on mobile is auth-only.** `apps/api` now has test files for `tutors`/`patients` (`tutor-patient.api.test.ts`), `consultations`, `auth` and `users`. On mobile, only `apps/mobile/src/features/auth/` has automated tests (55, via `jest-expo`); the Patient/Tutor registration, search and detail screens have none.
 - **Web session tokens live in `localStorage`.** `expo-secure-store` has no web implementation, so `apps/mobile/src/services/token-storage.ts` falls back to `localStorage` on web (Android keeps SecureStore). Any XSS on the web build could read the access and refresh tokens. Accepted for development; the MVP ships on Android + web, so it must be mitigated before launch (see `TASKS.md`).
 - **Validation error responses are not normalized** beyond the duplicate Tutor cases.

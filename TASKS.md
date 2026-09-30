@@ -8,6 +8,11 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 ## NEXT
 
+### Changes
+
+- [ ] Account self-service: change password while logged in (reusing `User.sessionVersion` to close the other sessions) and edit the user's name, evaluating asking for it on activation (ítems 1 y 6 de `checklist-tarea-add-auth-multitenancy.md`).
+- [ ] Record authorship for Tutor, Patient and Consultation: nullable `createdByUserId` plus `createdByName` and `createdByEmail` (see Decision 7 in the `design.md` of the OpenSpec change `add-user-roles-and-seat-limits`).
+
 ### Backend
 
 - [ ] Normalize validation error responses.
@@ -21,7 +26,7 @@ Active work queue. A finished item is deleted, not archived — it is already in
 
 ### Testing
 
-- [ ] Add cleanup for the users/organizations the Playwright e2e (`npx playwright test -c e2e`) registers in the dev database on every run (`e2e-drawer-<uuid>@example.com`). No API endpoint deletes them today.
+- [ ] Add cleanup for the users/organizations the Playwright e2e (`npx playwright test -c e2e`) registers in the dev database on every run (`e2e-drawer-<uuid>@example.com`, and the clinic owner plus pending invitation from `invite-user.spec.ts`). No API endpoint deletes them today.
 
 ## Rules
 
