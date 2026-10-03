@@ -96,7 +96,6 @@ Implemented:
 
 ## Risks Pending
 
-- **Mobile test coverage skips the Tutor/Patient forms.** On mobile, `jest-expo` tests cover auth, users, services, Home and Patient detail; the Tutor/Patient registration, edit and search screens and Tutor detail have none.
 - **Web session tokens live in `localStorage`.** `expo-secure-store` has no web implementation, so `apps/mobile/src/services/token-storage.ts` falls back to `localStorage` on web (Android keeps SecureStore). Any XSS on the web build could read the access and refresh tokens. Accepted for development; the MVP ships on Android + web, so it must be mitigated before launch (see `TASKS.md`).
 - **Validation error responses are not normalized** beyond the duplicate Tutor cases.
 - **The tablet two-column layout was never verified on physical hardware.** It was checked on web viewports at 900px and 390px only; no Android tablet or emulator was available.
