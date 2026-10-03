@@ -25,7 +25,14 @@ export function SelectField({
   disabled,
 }: SelectFieldProps) {
   const [visible, setVisible] = useState(false);
+  const [openCount, setOpenCount] = useState(0);
   const selectedLabel = options.find((option) => option.value === value)?.label;
+
+  const open = () => {
+    if (disabled) return;
+    setOpenCount((count) => count + 1);
+    setVisible(true);
+  };
 
   return (
     <View style={styles.group}>
@@ -33,11 +40,12 @@ export function SelectField({
         {label}
       </Text>
       <Menu
+        key={openCount}
         visible={visible}
         onDismiss={() => setVisible(false)}
         anchor={
           <TouchableRipple
-            onPress={() => !disabled && setVisible(true)}
+            onPress={open}
             disabled={disabled}
             style={[styles.anchor, disabled && styles.anchorDisabled]}>
             <Text style={selectedLabel ? styles.value : styles.placeholder}>
